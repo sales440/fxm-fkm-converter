@@ -35,3 +35,25 @@
 - [x] Aplicar títulos en ROJO (color FAGOR)
 - [x] Usar fuente Arial en toda la aplicación
 - [x] Títulos en BOLD con color blanco donde sea apropiado
+
+## Exportación de Reportes
+- [x] Instalar librerías jsPDF y xlsx
+- [x] Implementar exportación a PDF con membrete FAGOR
+- [x] Implementar exportación a Excel con membrete FAGOR
+- [x] Incluir logo y datos de FAGOR en reportes exportados
+
+## Filtros Avanzados
+- [x] Agregar filtro por rango de torque (Mo)
+- [x] Agregar filtro por rango de velocidad (RPM)
+- [x] Agregar filtro por dimensiones específicas
+- [x] Implementar UI de filtros avanzados
+
+## Diagramas Técnicos
+- [x] Crear componente de diagrama dimensional
+- [x] Mostrar comparación visual de dimensiones FXM vs FKM
+- [x] Agregar leyendas y anotaciones técnicas
+
+## Correcciones Urgentes
+- [x] Corregir lógica de búsqueda para soportar diferentes formatos de modelo
+- [x] Hacer búsqueda más flexible (ignorar mayúsculas, espacios, puntos)
+- [x] Validar que la búsqueda funcione con FXM75.30A.E1.000

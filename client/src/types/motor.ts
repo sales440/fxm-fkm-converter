@@ -25,6 +25,19 @@ export interface MotorDatabase {
   conversions: any[];
 }
 
+export interface DimensionComparison {
+  fxm: number | null;
+  fkm: number | null;
+  diff: number | null;
+}
+
+export interface ElectricalComparison {
+  fxm: number | null;
+  fkm: number | null;
+  diff: number | null;
+  percent: number | null;
+}
+
 export interface ComparisonResult {
   fxm: Motor;
   fkm: Motor;

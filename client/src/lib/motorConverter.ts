@@ -1,52 +1,108 @@
-import type { Motor, ComparisonResult, MotorDatabase } from '@/types/motor';
+import type { MotorDatabase, Motor, ComparisonResult, DimensionComparison, ElectricalComparison } from "@/types/motor";
 
-export function findEquivalentFKM(fxmMotor: Motor, database: MotorDatabase): Motor[] {
-  const fkmMotors = Object.values(database.fkm_motors);
-  
-  // Criterios de equivalencia:
-  // 1. RPM debe ser igual o superior
-  // 2. Mo (par a rótor parado) debe ser similar (±20%)
-  // 3. Preferir motores con dimensiones similares
-  
-  const candidates = fkmMotors.filter(fkm => {
-    if (!fkm.rpm || !fxmMotor.rpm) return false;
-    if (fkm.rpm < fxmMotor.rpm) return false;
-    
-    if (!fkm.mo || !fxmMotor.mo) return false;
-    const moRatio = fkm.mo / fxmMotor.mo;
-    // Aceptar FKM con Mo entre 80% y 150% del FXM
-    if (moRatio < 0.8 || moRatio > 1.5) return false;
-    
-    return true;
-  });
-  
-  // Ordenar por similitud (primero por RPM igual, luego por Mo más cercano)
-  candidates.sort((a, b) => {
-    // Prioridad 1: Mismo RPM
-    if (a.rpm === fxmMotor.rpm && b.rpm !== fxmMotor.rpm) return -1;
-    if (b.rpm === fxmMotor.rpm && a.rpm !== fxmMotor.rpm) return 1;
-    
-    // Prioridad 2: Mo más cercano
-    const aDiff = Math.abs((a.mo || 0) - (fxmMotor.mo || 0));
-    const bDiff = Math.abs((b.mo || 0) - (fxmMotor.mo || 0));
-    return aDiff - bDiff;
-  });
-  
-  // Retornar los 3 mejores candidatos
-  return candidates.slice(0, 3);
+/**
+ * Normaliza un modelo de motor para búsqueda flexible
+ * Elimina espacios, puntos extras y convierte a mayúsculas
+ */
+function normalizeModel(model: string): string {
+  return model
+    .toUpperCase()
+    .replace(/\s+/g, '') // Eliminar espacios
+    .replace(/\.+/g, '.') // Normalizar puntos múltiples
+    .replace(/[xX]{2,}/g, 'XX') // Normalizar xx, XX, etc.
+    .replace(/E\d+/gi, 'XX') // Convertir E1, E2, etc. a XX
+    .replace(/\.\d{3}$/, '00'); // Convertir .000, .001, etc. a 00
 }
 
+/**
+ * Busca motores FXM que coincidan con la consulta
+ */
+export function searchFXMMotors(database: MotorDatabase, query: string): Motor[] {
+  if (!query || query.trim().length < 3) return [];
+  
+  const normalizedQuery = normalizeModel(query);
+  const results: Motor[] = [];
+  
+  for (const [key, motor] of Object.entries(database.fxm_motors)) {
+    const normalizedKey = normalizeModel(key);
+    
+    // Búsqueda flexible: coincidencia parcial o exacta
+    if (normalizedKey.includes(normalizedQuery) || normalizedQuery.includes(normalizedKey.substring(0, 10))) {
+      results.push(motor);
+    }
+  }
+  
+  // Ordenar por similitud (los que empiezan igual primero)
+  return results.sort((a, b) => {
+    const aNorm = normalizeModel(a.model);
+    const bNorm = normalizeModel(b.model);
+    const aStarts = aNorm.startsWith(normalizedQuery.substring(0, 8));
+    const bStarts = bNorm.startsWith(normalizedQuery.substring(0, 8));
+    
+    if (aStarts && !bStarts) return -1;
+    if (!aStarts && bStarts) return 1;
+    return a.model.localeCompare(b.model);
+  });
+}
+
+/**
+ * Encuentra motores FKM equivalentes para un motor FXM dado
+ * Criterios: RPM igual, Mo similar (±20%), dimensiones compatibles
+ */
+export function findEquivalentFKM(fxmMotor: Motor, database: MotorDatabase): Motor[] {
+  const equivalents: Motor[] = [];
+  const targetRpm = fxmMotor.rpm;
+  const targetMo = fxmMotor.mo;
+  const moTolerance = 0.25; // 25% tolerancia
+  
+  for (const fkmMotor of Object.values(database.fkm_motors)) {
+    // Criterio 1: RPM debe ser igual
+    if (fkmMotor.rpm !== targetRpm) continue;
+    
+    // Criterio 2: Mo debe estar dentro del rango (±25%)
+    if (fkmMotor.mo === null || targetMo === null) continue;
+    const moDiff = Math.abs(fkmMotor.mo - targetMo) / targetMo;
+    if (moDiff > moTolerance) continue;
+    
+    equivalents.push(fkmMotor);
+  }
+  
+  // Ordenar por similitud de Mo (más cercano primero)
+  return equivalents.sort((a, b) => {
+    if (a.mo === null || b.mo === null || targetMo === null) return 0;
+    const aDiff = Math.abs(a.mo - targetMo);
+    const bDiff = Math.abs(b.mo - targetMo);
+    return aDiff - bDiff;
+  });
+}
+
+/**
+ * Compara dos motores y calcula las diferencias
+ */
 export function compareMotors(fxm: Motor, fkm: Motor): ComparisonResult {
-  const calcDiff = (fxmVal: number | null, fkmVal: number | null) => {
-    if (fxmVal === null || fkmVal === null) return { fxm: fxmVal, fkm: fkmVal, diff: null, percent: null };
-    const diff = fkmVal - fxmVal;
-    const percent = fxmVal !== 0 ? (diff / fxmVal) * 100 : null;
-    return { fxm: fxmVal, fkm: fkmVal, diff, percent };
+  const calcDiff = (fxmVal: number | null, fkmVal: number | null): DimensionComparison => {
+    if (fxmVal === null || fkmVal === null) {
+      return { fxm: fxmVal, fkm: fkmVal, diff: null };
+    }
+    return {
+      fxm: fxmVal,
+      fkm: fkmVal,
+      diff: fkmVal - fxmVal
+    };
   };
   
-  const calcDimDiff = (fxmVal: number | null, fkmVal: number | null) => {
-    if (fxmVal === null || fkmVal === null) return { fxm: fxmVal, fkm: fkmVal, diff: null };
-    return { fxm: fxmVal, fkm: fkmVal, diff: fkmVal - fxmVal };
+  const calcElecDiff = (fxmVal: number | null, fkmVal: number | null): ElectricalComparison => {
+    if (fxmVal === null || fkmVal === null) {
+      return { fxm: fxmVal, fkm: fkmVal, diff: null, percent: null };
+    }
+    const diff = fkmVal - fxmVal;
+    const percent = fxmVal !== 0 ? (diff / fxmVal) * 100 : null;
+    return {
+      fxm: fxmVal,
+      fkm: fkmVal,
+      diff,
+      percent
+    };
   };
   
   return {
@@ -54,36 +110,46 @@ export function compareMotors(fxm: Motor, fkm: Motor): ComparisonResult {
     fkm,
     differences: {
       electrical: {
-        mo: calcDiff(fxm.mo, fkm.mo),
-        mn: calcDiff(fxm.mn, fkm.mn),
-        mp: calcDiff(fxm.mp, fkm.mp),
-        io: calcDiff(fxm.io, fkm.io),
-        rpm: calcDiff(fxm.rpm, fkm.rpm),
-        j: calcDiff(fxm.j, fkm.j),
-        pcal: calcDiff(fxm.pcal, fkm.pcal),
+        mo: calcElecDiff(fxm.mo, fkm.mo),
+        mn: calcElecDiff(fxm.mn, fkm.mn),
+        mp: calcElecDiff(fxm.mp, fkm.mp),
+        io: calcElecDiff(fxm.io, fkm.io),
+        rpm: calcElecDiff(fxm.rpm, fkm.rpm),
+        j: calcElecDiff(fxm.j, fkm.j),
+        pcal: calcElecDiff(fxm.pcal, fkm.pcal)
       },
       dimensions: {
-        l: calcDimDiff(fxm.dimensions.l, fkm.dimensions.l),
-        ac: calcDimDiff(fxm.dimensions.ac, fkm.dimensions.ac),
-        n: calcDimDiff(fxm.dimensions.n, fkm.dimensions.n),
-        d: calcDimDiff(fxm.dimensions.d, fkm.dimensions.d),
-        e: calcDimDiff(fxm.dimensions.e, fkm.dimensions.e),
-        m: calcDimDiff(fxm.dimensions.m, fkm.dimensions.m),
-      },
-    },
+        l: calcDiff(fxm.dimensions.l, fkm.dimensions.l),
+        ac: calcDiff(fxm.dimensions.ac, fkm.dimensions.ac),
+        n: calcDiff(fxm.dimensions.n, fkm.dimensions.n),
+        d: calcDiff(fxm.dimensions.d, fkm.dimensions.d),
+        e: calcDiff(fxm.dimensions.e, fkm.dimensions.e),
+        m: calcDiff(fxm.dimensions.m, fkm.dimensions.m)
+      }
+    }
   };
 }
 
-export function searchFXMMotors(database: MotorDatabase, query: string): Motor[] {
-  const motors = Object.values(database.fxm_motors);
-  
-  if (!query.trim()) {
-    return motors.slice(0, 50); // Retornar primeros 50 si no hay búsqueda
-  }
-  
-  const lowerQuery = query.toLowerCase();
-  
+/**
+ * Filtra motores por criterios avanzados
+ */
+export interface AdvancedFilters {
+  moMin?: number;
+  moMax?: number;
+  rpmMin?: number;
+  rpmMax?: number;
+  lMax?: number;
+  acMax?: number;
+}
+
+export function applyAdvancedFilters(motors: Motor[], filters: AdvancedFilters): Motor[] {
   return motors.filter(motor => {
-    return motor.model.toLowerCase().includes(lowerQuery);
-  }).slice(0, 50);
+    if (filters.moMin !== undefined && motor.mo !== null && motor.mo < filters.moMin) return false;
+    if (filters.moMax !== undefined && motor.mo !== null && motor.mo > filters.moMax) return false;
+    if (filters.rpmMin !== undefined && motor.rpm !== null && motor.rpm < filters.rpmMin) return false;
+    if (filters.rpmMax !== undefined && motor.rpm !== null && motor.rpm > filters.rpmMax) return false;
+    if (filters.lMax !== undefined && motor.dimensions.l && motor.dimensions.l > filters.lMax) return false;
+    if (filters.acMax !== undefined && motor.dimensions.ac && motor.dimensions.ac > filters.acMax) return false;
+    return true;
+  });
 }

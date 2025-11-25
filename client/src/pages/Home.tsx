@@ -7,8 +7,9 @@ import { Globe, Search } from "lucide-react";
 import { APP_LOGO } from "@/const";
 import { useLanguage, Language } from "@/contexts/LanguageContext";
 import type { MotorDatabase, Motor, ComparisonResult } from "@/types/motor";
-import { searchFXMMotors, findEquivalentFKM, compareMotors } from "@/lib/motorConverter";
+import { searchFXMMotors, findEquivalentFKM, compareMotors, applyAdvancedFilters, type AdvancedFilters } from "@/lib/motorConverter";
 import MotorComparisonReport from "@/components/MotorComparisonReport";
+import AdvancedFiltersComponent from "@/components/AdvancedFilters";
 
 export default function Home() {
   const { language, setLanguage, t } = useLanguage();
@@ -19,6 +20,8 @@ export default function Home() {
   const [selectedFKM, setSelectedFKM] = useState<Motor | null>(null);
   const [comparison, setComparison] = useState<ComparisonResult | null>(null);
   const [searchResults, setSearchResults] = useState<Motor[]>([]);
+  const [activeFilters, setActiveFilters] = useState<AdvancedFilters>({});
+  const [hasFilters, setHasFilters] = useState(false);
   
   // Cargar base de datos
   useEffect(() => {
@@ -32,7 +35,13 @@ export default function Home() {
   
   const handleSearch = () => {
     if (!database) return;
-    const results = searchFXMMotors(database, searchQuery);
+    let results = searchFXMMotors(database, searchQuery);
+    
+    // Aplicar filtros si existen
+    if (hasFilters) {
+      results = applyAdvancedFilters(results, activeFilters);
+    }
+    
     setSearchResults(results);
     setSelectedFXM(null);
     setEquivalentFKMs([]);
@@ -58,6 +67,27 @@ export default function Home() {
     if (!selectedFXM) return;
     setSelectedFKM(motor);
     setComparison(compareMotors(selectedFXM, motor));
+  };
+  
+  const handleApplyFilters = (filters: AdvancedFilters) => {
+    setActiveFilters(filters);
+    setHasFilters(true);
+    // Reaplicar búsqueda con filtros
+    if (searchQuery && database) {
+      let results = searchFXMMotors(database, searchQuery);
+      results = applyAdvancedFilters(results, filters);
+      setSearchResults(results);
+    }
+  };
+  
+  const handleClearFilters = () => {
+    setActiveFilters({});
+    setHasFilters(false);
+    // Reaplicar búsqueda sin filtros
+    if (searchQuery && database) {
+      const results = searchFXMMotors(database, searchQuery);
+      setSearchResults(results);
+    }
   };
   
   return (
@@ -116,7 +146,7 @@ export default function Home() {
             <CardDescription>{t('search.placeholder')}</CardDescription>
           </CardHeader>
           <CardContent className="pt-6">
-            <div className="flex gap-4">
+            <div className="flex gap-4 mb-4">
               <Input
                 placeholder={t('search.placeholder')}
                 value={searchQuery}
@@ -128,6 +158,14 @@ export default function Home() {
                 <Search className="h-4 w-4 mr-2" />
                 {t('search.button')}
               </Button>
+            </div>
+            
+            {/* Filtros Avanzados */}
+            <div className="mb-4">
+              <AdvancedFiltersComponent
+                onApplyFilters={handleApplyFilters}
+                onClearFilters={handleClearFilters}
+              />
             </div>
             
             {/* Search Results */}

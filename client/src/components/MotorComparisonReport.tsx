@@ -4,20 +4,35 @@ import { FileDown, FileSpreadsheet } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { ComparisonResult } from "@/types/motor";
 import { toast } from "sonner";
+import { exportToPDF } from "@/lib/pdfExporter";
+import { exportToExcel } from "@/lib/excelExporter";
+import MotorDimensionDiagram from "@/components/MotorDimensionDiagram";
 
 interface MotorComparisonReportProps {
   comparison: ComparisonResult;
 }
 
 export default function MotorComparisonReport({ comparison }: MotorComparisonReportProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   
-  const handleDownloadPDF = () => {
-    toast.info(t('report.pdf') + ' - ' + 'Feature coming soon');
+  const handleDownloadPDF = async () => {
+    try {
+      await exportToPDF(comparison, language);
+      toast.success('PDF downloaded successfully');
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      toast.error('Error generating PDF');
+    }
   };
   
   const handleDownloadExcel = () => {
-    toast.info(t('report.excel') + ' - ' + 'Feature coming soon');
+    try {
+      exportToExcel(comparison, language);
+      toast.success('Excel downloaded successfully');
+    } catch (error) {
+      console.error('Error exporting Excel:', error);
+      toast.error('Error generating Excel');
+    }
   };
   
   const formatValue = (value: number | null, unit: string) => {
@@ -45,6 +60,7 @@ export default function MotorComparisonReport({ comparison }: MotorComparisonRep
   };
   
   return (
+    <>
     <Card className="border-t-4 border-t-primary">
       <CardHeader className="bg-gradient-to-r from-primary/10 to-primary/5">
         <div className="flex items-center justify-between">
@@ -239,5 +255,11 @@ export default function MotorComparisonReport({ comparison }: MotorComparisonRep
         </div>
       </CardContent>
     </Card>
+    
+    {/* Diagrama dimensional */}
+    <div className="mt-6">
+      <MotorDimensionDiagram fxm={comparison.fxm} fkm={comparison.fkm} />
+    </div>
+    </>
   );
 }
