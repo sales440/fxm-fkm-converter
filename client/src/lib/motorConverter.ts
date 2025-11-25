@@ -15,6 +15,16 @@ function normalizeModel(model: string): string {
 }
 
 /**
+ * Detecta automáticamente el tipo de motor (FXM o FKM)
+ */
+export function detectMotorType(query: string): 'FXM' | 'FKM' | 'UNKNOWN' {
+  const normalized = query.toUpperCase().replace(/[\s.-]/g, '');
+  if (normalized.includes('FXM')) return 'FXM';
+  if (normalized.includes('FKM')) return 'FKM';
+  return 'UNKNOWN';
+}
+
+/**
  * Busca motores FXM que coincidan con la consulta
  */
 export function searchFXMMotors(database: MotorDatabase, query: string): Motor[] {
@@ -33,6 +43,37 @@ export function searchFXMMotors(database: MotorDatabase, query: string): Motor[]
   }
   
   // Ordenar por similitud (los que empiezan igual primero)
+  return results.sort((a, b) => {
+    const aNorm = normalizeModel(a.model);
+    const bNorm = normalizeModel(b.model);
+    const aStarts = aNorm.startsWith(normalizedQuery.substring(0, 8));
+    const bStarts = bNorm.startsWith(normalizedQuery.substring(0, 8));
+    
+    if (aStarts && !bStarts) return -1;
+    if (!aStarts && bStarts) return 1;
+    return a.model.localeCompare(b.model);
+  });
+}
+
+/**
+ * Busca motores FKM que coincidan con la consulta
+ */
+export function searchFKMMotors(database: MotorDatabase, query: string): Motor[] {
+  if (!query || query.trim().length < 3) return [];
+  
+  const normalizedQuery = normalizeModel(query);
+  const results: Motor[] = [];
+  
+  for (const [key, motor] of Object.entries(database.fkm_motors)) {
+    const normalizedKey = normalizeModel(key);
+    
+    // Búsqueda flexible: coincidencia parcial o exacta
+    if (normalizedKey.includes(normalizedQuery) || normalizedQuery.includes(normalizedKey.substring(0, 10))) {
+      results.push(motor);
+    }
+  }
+  
+  // Ordenar por similitud
   return results.sort((a, b) => {
     const aNorm = normalizeModel(a.model);
     const bNorm = normalizeModel(b.model);
@@ -65,6 +106,37 @@ export function findEquivalentFKM(fxmMotor: Motor, database: MotorDatabase): Mot
     if (moDiff > moTolerance) continue;
     
     equivalents.push(fkmMotor);
+  }
+  
+  // Ordenar por similitud de Mo (más cercano primero)
+  return equivalents.sort((a, b) => {
+    if (a.mo === null || b.mo === null || targetMo === null) return 0;
+    const aDiff = Math.abs(a.mo - targetMo);
+    const bDiff = Math.abs(b.mo - targetMo);
+    return aDiff - bDiff;
+  });
+}
+
+/**
+ * Encuentra motores FXM equivalentes para un motor FKM dado
+ * Criterios: RPM igual, Mo similar (±25%), dimensiones compatibles
+ */
+export function findEquivalentFXM(fkmMotor: Motor, database: MotorDatabase): Motor[] {
+  const equivalents: Motor[] = [];
+  const targetRpm = fkmMotor.rpm;
+  const targetMo = fkmMotor.mo;
+  const moTolerance = 0.25; // 25% tolerancia
+  
+  for (const fxmMotor of Object.values(database.fxm_motors)) {
+    // Criterio 1: RPM debe ser igual
+    if (fxmMotor.rpm !== targetRpm) continue;
+    
+    // Criterio 2: Mo debe estar dentro del rango (±25%)
+    if (fxmMotor.mo === null || targetMo === null) continue;
+    const moDiff = Math.abs(fxmMotor.mo - targetMo) / targetMo;
+    if (moDiff > moTolerance) continue;
+    
+    equivalents.push(fxmMotor);
   }
   
   // Ordenar por similitud de Mo (más cercano primero)

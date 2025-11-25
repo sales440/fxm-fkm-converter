@@ -10,9 +10,10 @@ import MotorDimensionDiagram from "@/components/MotorDimensionDiagram";
 
 interface MotorComparisonReportProps {
   comparison: ComparisonResult;
+  conversionDirection?: 'FXM_TO_FKM' | 'FKM_TO_FXM';
 }
 
-export default function MotorComparisonReport({ comparison }: MotorComparisonReportProps) {
+export default function MotorComparisonReport({ comparison, conversionDirection = 'FXM_TO_FKM' }: MotorComparisonReportProps) {
   const { t, language } = useLanguage();
   
   const handleDownloadPDF = async () => {

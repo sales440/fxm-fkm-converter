@@ -9,9 +9,10 @@ import type { AdvancedFilters as FilterType } from "@/lib/motorConverter";
 interface AdvancedFiltersProps {
   onApplyFilters: (filters: FilterType) => void;
   onClearFilters: () => void;
+  hasActiveFilters?: boolean;
 }
 
-export default function AdvancedFilters({ onApplyFilters, onClearFilters }: AdvancedFiltersProps) {
+export default function AdvancedFilters({ onApplyFilters, onClearFilters, hasActiveFilters = false }: AdvancedFiltersProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [filters, setFilters] = useState<FilterType>({});
   

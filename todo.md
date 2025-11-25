@@ -57,3 +57,13 @@
 - [x] Corregir lógica de búsqueda para soportar diferentes formatos de modelo
 - [x] Hacer búsqueda más flexible (ignorar mayúsculas, espacios, puntos)
 - [x] Validar que la búsqueda funcione con FXM75.30A.E1.000
+
+## Búsqueda Bidireccional FXM ↔ FKM
+- [x] Implementar detección automática del tipo de motor (FXM o FKM)
+- [x] Crear función de búsqueda FKM a FXM
+- [x] Actualizar función findEquivalentFKM para soportar búsqueda inversa
+- [x] Modificar interfaz para mostrar dirección de conversión
+- [x] Actualizar títulos y etiquetas según dirección de búsqueda
+- [x] Adaptar reportes PDF/Excel para ambas direcciones
+- [x] Probar búsqueda FKM→FXM con ejemplos
+- [x] Validar que los reportes muestren correctamente la dirección de conversión
