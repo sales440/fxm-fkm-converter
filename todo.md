@@ -67,3 +67,11 @@
 - [x] Adaptar reportes PDF/Excel para ambas direcciones
 - [x] Probar búsqueda FKM→FXM con ejemplos
 - [x] Validar que los reportes muestren correctamente la dirección de conversión
+
+## Mejora de Reporte Excel
+- [x] Agregar logo de FAGOR en esquina superior izquierda del Excel
+- [x] Agregar dirección de FAGOR Automation USA en esquina superior derecha
+- [x] Aplicar fondo rojo (#DC2626) a todos los títulos
+- [x] Aplicar fuente Arial Bold blanca a todos los títulos
+- [x] Mejorar formato general del Excel (bordes, alineación, anchos de columna)
+- [x] Probar descarga de Excel con nuevo formato
