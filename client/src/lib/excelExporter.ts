@@ -300,7 +300,7 @@ export async function exportToExcel(comparison: ComparisonResult, language: stri
     currentRow++;
   });
   
-  currentRow++;
+  currentRow += 2;
   
   // Sección: Recomendaciones de Encoders
   worksheet.mergeCells(`A${currentRow}:E${currentRow}`);
@@ -317,7 +317,27 @@ export async function exportToExcel(comparison: ComparisonResult, language: stri
   
   currentRow++;
   
-  // Datos de encoders
+  // Agregar imagen del encoder
+  try {
+    const encoderImgResponse = await fetch('/encoder-industrial.png');
+    const encoderImgBlob = await encoderImgResponse.blob();
+    const encoderImgArrayBuffer = await encoderImgBlob.arrayBuffer();
+    
+    const encoderImgId = workbook.addImage({
+      buffer: encoderImgArrayBuffer,
+      extension: 'png',
+    });
+    
+    // Insertar imagen del encoder en la columna D-E
+    worksheet.addImage(encoderImgId, {
+      tl: { col: 3.2, row: currentRow - 0.5 },
+      ext: { width: 150, height: 150 }
+    });
+  } catch (error) {
+    console.error('Error loading encoder image:', error);
+  }
+  
+  // Datos de encoders (lado izquierdo)
   const encoderDataRows = [
     [language === 'es' ? 'Encoder FXM:' : 'FXM Encoder:', encoderRec?.fxmEncoder || 'N/A'],
     [language === 'es' ? 'Encoder FKM Recomendado:' : 'Recommended FKM Encoder:', encoderRec?.bestMatch || 'N/A'],
@@ -329,14 +349,15 @@ export async function exportToExcel(comparison: ComparisonResult, language: stri
     const row = worksheet.getRow(currentRow);
     row.getCell(1).value = label;
     row.getCell(1).font = { name: 'Arial', size: 10, bold: true };
-    worksheet.mergeCells(`B${currentRow}:E${currentRow}`);
+    worksheet.mergeCells(`B${currentRow}:C${currentRow}`);
     row.getCell(2).value = value;
     row.getCell(2).font = { name: 'Arial', size: 9 };
-    row.getCell(2).alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
+    row.getCell(2).alignment = { horizontal: 'left', vertical: 'top', wrapText: true };
+    row.height = 20;
     currentRow++;
   });
   
-  currentRow++;
+  currentRow += 2;
   
   // Sección: Recomendaciones de Conectores
   worksheet.mergeCells(`A${currentRow}:E${currentRow}`);
@@ -353,7 +374,27 @@ export async function exportToExcel(comparison: ComparisonResult, language: stri
   
   currentRow++;
   
-  // Datos de conectores
+  // Agregar imagen del conector
+  try {
+    const connectorImgResponse = await fetch('/connector-industrial.png');
+    const connectorImgBlob = await connectorImgResponse.blob();
+    const connectorImgArrayBuffer = await connectorImgBlob.arrayBuffer();
+    
+    const connectorImgId = workbook.addImage({
+      buffer: connectorImgArrayBuffer,
+      extension: 'png',
+    });
+    
+    // Insertar imagen del conector en la columna D-E
+    worksheet.addImage(connectorImgId, {
+      tl: { col: 3.2, row: currentRow - 0.5 },
+      ext: { width: 150, height: 150 }
+    });
+  } catch (error) {
+    console.error('Error loading connector image:', error);
+  }
+  
+  // Datos de conectores (lado izquierdo)
   const connectorDataRows = [
     [language === 'es' ? 'Conector FXM:' : 'FXM Connector:', connectorRec?.fxmConnector || 'N/A'],
     [language === 'es' ? 'Conector FKM Recomendado:' : 'Recommended FKM Connector:', connectorRec?.recommendedFkmConnector || 'N/A'],
@@ -366,10 +407,11 @@ export async function exportToExcel(comparison: ComparisonResult, language: stri
     const row = worksheet.getRow(currentRow);
     row.getCell(1).value = label;
     row.getCell(1).font = { name: 'Arial', size: 10, bold: true };
-    worksheet.mergeCells(`B${currentRow}:E${currentRow}`);
+    worksheet.mergeCells(`B${currentRow}:C${currentRow}`);
     row.getCell(2).value = value;
     row.getCell(2).font = { name: 'Arial', size: 9 };
-    row.getCell(2).alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
+    row.getCell(2).alignment = { horizontal: 'left', vertical: 'top', wrapText: true };
+    row.height = 20;
     currentRow++;
   });
   

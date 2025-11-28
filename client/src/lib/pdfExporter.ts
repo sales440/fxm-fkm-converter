@@ -14,16 +14,21 @@ export async function exportToPDF(comparison: ComparisonResult, language: string
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
+  const marginLeft = 15;
+  const marginRight = 15;
+  const contentWidth = pageWidth - marginLeft - marginRight;
   
   // Cargar logo de FAGOR en base64
   const logoBase64 = await getLogoBase64();
   
   let yPos = 10;
   
+  // ============= PÁGINA 1: HEADER Y ESPECIFICACIONES =============
+  
   // Header con membrete FAGOR
   if (logoBase64) {
     try {
-      doc.addImage(logoBase64, 'JPEG', 15, yPos, 60, 15);
+      doc.addImage(logoBase64, 'JPEG', marginLeft, yPos, 60, 15);
     } catch (e) {
       console.warn('No se pudo cargar el logo:', e);
     }
@@ -32,16 +37,16 @@ export async function exportToPDF(comparison: ComparisonResult, language: string
   // Información de contacto (derecha)
   doc.setFontSize(8);
   doc.setTextColor(0, 0, 0);
-  doc.text('FAGOR Automation USA', pageWidth - 15, yPos + 2, { align: 'right' });
-  doc.text('1755 Park Street, Naperville, IL 60563', pageWidth - 15, yPos + 6, { align: 'right' });
-  doc.text('Tel: +1 (630) 851-3050', pageWidth - 15, yPos + 10, { align: 'right' });
+  doc.text('FAGOR Automation USA', pageWidth - marginRight, yPos + 2, { align: 'right' });
+  doc.text('1755 Park Street, Naperville, IL 60563', pageWidth - marginRight, yPos + 6, { align: 'right' });
+  doc.text('Tel: +1 (630) 851-3050', pageWidth - marginRight, yPos + 10, { align: 'right' });
   
-  yPos += 18;
+  yPos += 20;
   
   // Línea separadora roja
   doc.setDrawColor(FAGOR_RED[0], FAGOR_RED[1], FAGOR_RED[2]);
   doc.setLineWidth(1.5);
-  doc.line(15, yPos, pageWidth - 15, yPos);
+  doc.line(marginLeft, yPos, pageWidth - marginRight, yPos);
   
   yPos += 10;
   
@@ -52,29 +57,35 @@ export async function exportToPDF(comparison: ComparisonResult, language: string
   const title = language === 'es' ? 'Reporte de Conversión de Motores: FXM a FKM' : 'Motor Conversion Report: FXM to FKM';
   doc.text(title, pageWidth / 2, yPos, { align: 'center' });
   
-  yPos += 10;
+  yPos += 12;
   
-  // Información de motores
+  // Información de motores en cajas
+  doc.setFillColor(240, 240, 240);
+  doc.rect(marginLeft, yPos, contentWidth / 2 - 2, 20, 'F');
+  doc.rect(marginLeft + contentWidth / 2 + 2, yPos, contentWidth / 2 - 2, 20, 'F');
+  
   doc.setFontSize(10);
   doc.setTextColor(0, 0, 0);
   doc.setFont('helvetica', 'bold');
-  doc.text(language === 'es' ? 'Modelo FXM:' : 'FXM Model:', 15, yPos);
+  doc.text(language === 'es' ? 'Motor FXM Original' : 'Original FXM Motor', marginLeft + 5, yPos + 6);
   doc.setFont('helvetica', 'normal');
-  doc.text(comparison.fxm.model, 50, yPos);
+  doc.setFontSize(12);
+  doc.text(comparison.fxm.model, marginLeft + 5, yPos + 14);
   
-  yPos += 6;
   doc.setFont('helvetica', 'bold');
-  doc.text(language === 'es' ? 'Modelo FKM Equivalente:' : 'Equivalent FKM Model:', 15, yPos);
+  doc.setFontSize(10);
+  doc.text(language === 'es' ? 'Motor FKM Equivalente' : 'Equivalent FKM Motor', marginLeft + contentWidth / 2 + 7, yPos + 6);
   doc.setFont('helvetica', 'normal');
-  doc.text(comparison.fkm.model, 50, yPos);
+  doc.setFontSize(12);
+  doc.text(comparison.fkm.model, marginLeft + contentWidth / 2 + 7, yPos + 14);
   
-  yPos += 10;
+  yPos += 28;
   
   // Sección: Especificaciones Eléctricas
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(FAGOR_RED[0], FAGOR_RED[1], FAGOR_RED[2]);
-  doc.text(language === 'es' ? 'Especificaciones Eléctricas' : 'Electrical Specifications', 15, yPos);
+  doc.text(language === 'es' ? 'Especificaciones Eléctricas' : 'Electrical Specifications', marginLeft, yPos);
   
   yPos += 8;
   
@@ -124,7 +135,7 @@ export async function exportToPDF(comparison: ComparisonResult, language: string
       'FXM', 
       'FKM', 
       language === 'es' ? 'Diferencia' : 'Difference',
-      language === 'es' ? 'Porcentaje' : 'Percentage'
+      language === 'es' ? 'Cambio %' : 'Change %'
     ]],
     body: electricalData,
     theme: 'grid',
@@ -132,12 +143,21 @@ export async function exportToPDF(comparison: ComparisonResult, language: string
       fillColor: FAGOR_RED,
       textColor: [255, 255, 255],
       fontStyle: 'bold',
-      fontSize: 9
+      fontSize: 9,
+      halign: 'center'
     },
     bodyStyles: {
-      fontSize: 8
+      fontSize: 8,
+      cellPadding: 3
     },
-    margin: { left: 15, right: 15 },
+    columnStyles: {
+      0: { cellWidth: 60 },
+      1: { halign: 'center', cellWidth: 30 },
+      2: { halign: 'center', cellWidth: 30 },
+      3: { halign: 'center', cellWidth: 30 },
+      4: { halign: 'center', cellWidth: 25 }
+    },
+    margin: { left: marginLeft, right: marginRight },
   });
   
   yPos = (doc as any).lastAutoTable.finalY + 10;
@@ -146,7 +166,7 @@ export async function exportToPDF(comparison: ComparisonResult, language: string
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(FAGOR_RED[0], FAGOR_RED[1], FAGOR_RED[2]);
-  doc.text(language === 'es' ? 'Dimensiones Mecánicas' : 'Mechanical Dimensions', 15, yPos);
+  doc.text(language === 'es' ? 'Dimensiones Mecánicas' : 'Mechanical Dimensions', marginLeft, yPos);
   
   yPos += 8;
   
@@ -192,106 +212,158 @@ export async function exportToPDF(comparison: ComparisonResult, language: string
       fillColor: FAGOR_RED,
       textColor: [255, 255, 255],
       fontStyle: 'bold',
-      fontSize: 9
+      fontSize: 9,
+      halign: 'center'
     },
     bodyStyles: {
-      fontSize: 8
+      fontSize: 8,
+      cellPadding: 3
     },
-    margin: { left: 15, right: 15 },
+    columnStyles: {
+      0: { cellWidth: 70 },
+      1: { halign: 'center', cellWidth: 35 },
+      2: { halign: 'center', cellWidth: 35 },
+      3: { halign: 'center', cellWidth: 35 }
+    },
+    margin: { left: marginLeft, right: marginRight },
   });
   
   yPos = (doc as any).lastAutoTable.finalY + 10;
   
-  // Nueva página si es necesario
-  if (yPos > pageHeight - 60) {
-    doc.addPage();
-    yPos = 20;
+  // ============= PÁGINA 2: RECOMENDACIONES CON IMÁGENES =============
+  doc.addPage();
+  yPos = 20;
+  
+  // Título de página 2
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(FAGOR_RED[0], FAGOR_RED[1], FAGOR_RED[2]);
+  doc.text(language === 'es' ? 'Recomendaciones de Componentes' : 'Component Recommendations', marginLeft, yPos);
+  
+  yPos += 12;
+  
+  // ========== SECCIÓN ENCODERS ==========
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(FAGOR_RED[0], FAGOR_RED[1], FAGOR_RED[2]);
+  doc.text(language === 'es' ? 'Encoders' : 'Encoders', marginLeft, yPos);
+  
+  yPos += 8;
+  
+  // Agregar imagen del encoder
+  try {
+    const encoderImg = '/encoder-industrial.png';
+    doc.addImage(encoderImg, 'PNG', pageWidth - marginRight - 50, yPos, 45, 45);
+  } catch (e) {
+    console.warn('No se pudo cargar imagen de encoder:', e);
   }
   
-  // Sección: Recomendaciones de Encoders
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(FAGOR_RED[0], FAGOR_RED[1], FAGOR_RED[2]);
-  doc.text(language === 'es' ? 'Recomendaciones de Encoders' : 'Encoder Recommendations', 15, yPos);
-  
-  yPos += 8;
-  
+  // Información del encoder (lado izquierdo)
   doc.setFontSize(9);
   doc.setTextColor(0, 0, 0);
   doc.setFont('helvetica', 'bold');
-  doc.text(language === 'es' ? 'Encoder FXM:' : 'FXM Encoder:', 15, yPos);
+  doc.text(language === 'es' ? 'Encoder FXM Original:' : 'Original FXM Encoder:', marginLeft, yPos);
   doc.setFont('helvetica', 'normal');
-  doc.text(encoderRec?.fxmEncoder || 'N/A', 50, yPos);
+  const fxmEncoderText = doc.splitTextToSize(encoderRec?.fxmEncoder || 'N/A', contentWidth - 60);
+  doc.text(fxmEncoderText, marginLeft, yPos + 5);
   
-  yPos += 5;
+  yPos += (fxmEncoderText.length * 5) + 8;
+  
   doc.setFont('helvetica', 'bold');
-  doc.text(language === 'es' ? 'Encoder FKM Recomendado:' : 'Recommended FKM Encoder:', 15, yPos);
+  doc.text(language === 'es' ? 'Encoder FKM Recomendado:' : 'Recommended FKM Encoder:', marginLeft, yPos);
   doc.setFont('helvetica', 'normal');
-  doc.text(encoderRec?.bestMatch || 'N/A', 70, yPos);
+  const fkmEncoderText = doc.splitTextToSize(encoderRec?.bestMatch || 'N/A', contentWidth - 60);
+  doc.text(fkmEncoderText, marginLeft, yPos + 5);
   
-  yPos += 5;
+  yPos += (fkmEncoderText.length * 5) + 8;
+  
   doc.setFont('helvetica', 'bold');
-  doc.text(language === 'es' ? 'Opciones Alternativas:' : 'Alternative Options:', 15, yPos);
+  doc.text(language === 'es' ? 'Opciones Alternativas:' : 'Alternative Options:', marginLeft, yPos);
   doc.setFont('helvetica', 'normal');
-  doc.text(encoderRec?.recommendedFkmEncoders.join(', ') || 'N/A', 60, yPos);
+  const altEncodersText = doc.splitTextToSize(encoderRec?.recommendedFkmEncoders.join(', ') || 'N/A', contentWidth - 60);
+  doc.text(altEncodersText, marginLeft, yPos + 5);
   
-  yPos += 5;
+  yPos += (altEncodersText.length * 5) + 8;
+  
+  // Nota del encoder
   doc.setFont('helvetica', 'italic');
   doc.setFontSize(8);
-  const encoderNote = doc.splitTextToSize(encoderRec?.notes || '', pageWidth - 30);
-  doc.text(encoderNote, 15, yPos);
+  doc.setTextColor(80, 80, 80);
+  const encoderNote = doc.splitTextToSize(encoderRec?.notes || '', contentWidth - 5);
+  doc.text(encoderNote, marginLeft, yPos);
   yPos += encoderNote.length * 4;
-  
-  yPos += 10;
-  
-  // Sección: Recomendaciones de Conectores
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(FAGOR_RED[0], FAGOR_RED[1], FAGOR_RED[2]);
-  doc.text(language === 'es' ? 'Recomendaciones de Conectores de Potencia' : 'Power Connector Recommendations', 15, yPos);
-  
-  yPos += 8;
-  
-  doc.setFontSize(9);
-  doc.setTextColor(0, 0, 0);
-  doc.setFont('helvetica', 'bold');
-  doc.text(language === 'es' ? 'Conector FXM:' : 'FXM Connector:', 15, yPos);
-  doc.setFont('helvetica', 'normal');
-  doc.text(connectorRec?.fxmConnector || 'N/A', 50, yPos);
-  
-  yPos += 5;
-  doc.setFont('helvetica', 'bold');
-  doc.text(language === 'es' ? 'Conector FKM Recomendado:' : 'Recommended FKM Connector:', 15, yPos);
-  doc.setFont('helvetica', 'normal');
-  doc.text(connectorRec?.recommendedFkmConnector || 'N/A', 75, yPos);
-  
-  yPos += 5;
-  doc.setFont('helvetica', 'bold');
-  doc.text(language === 'es' ? 'Calibre de Cable:' : 'Wire Gauge:', 15, yPos);
-  doc.setFont('helvetica', 'normal');
-  doc.text(connectorRec?.wireGauge || 'N/A', 50, yPos);
-  
-  yPos += 5;
-  doc.setFont('helvetica', 'bold');
-  doc.text(language === 'es' ? 'Conectores Alternativos:' : 'Alternative Connectors:', 15, yPos);
-  doc.setFont('helvetica', 'normal');
-  doc.text(connectorRec?.alternativeConnectors.join(', ') || 'N/A', 70, yPos);
-  
-  yPos += 5;
-  doc.setFont('helvetica', 'italic');
-  doc.setFontSize(8);
-  const connectorNote = doc.splitTextToSize(connectorRec?.notes || '', pageWidth - 30);
-  doc.text(connectorNote, 15, yPos);
-  yPos += connectorNote.length * 4;
   
   yPos += 15;
   
-  // Footer
-  doc.setFontSize(8);
-  doc.setTextColor(100, 100, 100);
+  // ========== SECCIÓN CONECTORES ==========
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(FAGOR_RED[0], FAGOR_RED[1], FAGOR_RED[2]);
+  doc.text(language === 'es' ? 'Conectores de Potencia' : 'Power Connectors', marginLeft, yPos);
+  
+  yPos += 8;
+  
+  // Agregar imagen del conector
+  try {
+    const connectorImg = '/connector-industrial.png';
+    doc.addImage(connectorImg, 'PNG', pageWidth - marginRight - 50, yPos, 45, 45);
+  } catch (e) {
+    console.warn('No se pudo cargar imagen de conector:', e);
+  }
+  
+  // Información del conector (lado izquierdo)
+  doc.setFontSize(9);
+  doc.setTextColor(0, 0, 0);
+  doc.setFont('helvetica', 'bold');
+  doc.text(language === 'es' ? 'Conector FXM Original:' : 'Original FXM Connector:', marginLeft, yPos);
   doc.setFont('helvetica', 'normal');
-  doc.text('© 2024 FAGOR Automation. All rights reserved.', pageWidth / 2, pageHeight - 15, { align: 'center' });
-  doc.text('Open to your world', pageWidth / 2, pageHeight - 10, { align: 'center' });
+  const fxmConnectorText = doc.splitTextToSize(connectorRec?.fxmConnector || 'N/A', contentWidth - 60);
+  doc.text(fxmConnectorText, marginLeft, yPos + 5);
+  
+  yPos += (fxmConnectorText.length * 5) + 8;
+  
+  doc.setFont('helvetica', 'bold');
+  doc.text(language === 'es' ? 'Conector FKM Recomendado:' : 'Recommended FKM Connector:', marginLeft, yPos);
+  doc.setFont('helvetica', 'normal');
+  const fkmConnectorText = doc.splitTextToSize(connectorRec?.recommendedFkmConnector || 'N/A', contentWidth - 60);
+  doc.text(fkmConnectorText, marginLeft, yPos + 5);
+  
+  yPos += (fkmConnectorText.length * 5) + 8;
+  
+  doc.setFont('helvetica', 'bold');
+  doc.text(language === 'es' ? 'Calibre de Cable:' : 'Wire Gauge:', marginLeft, yPos);
+  doc.setFont('helvetica', 'normal');
+  doc.text(connectorRec?.wireGauge || 'N/A', marginLeft + 40, yPos);
+  
+  yPos += 8;
+  
+  doc.setFont('helvetica', 'bold');
+  doc.text(language === 'es' ? 'Conectores Alternativos:' : 'Alternative Connectors:', marginLeft, yPos);
+  doc.setFont('helvetica', 'normal');
+  const altConnectorsText = doc.splitTextToSize(connectorRec?.alternativeConnectors.join(', ') || 'N/A', contentWidth - 60);
+  doc.text(altConnectorsText, marginLeft, yPos + 5);
+  
+  yPos += (altConnectorsText.length * 5) + 8;
+  
+  // Nota del conector
+  doc.setFont('helvetica', 'italic');
+  doc.setFontSize(8);
+  doc.setTextColor(80, 80, 80);
+  const connectorNote = doc.splitTextToSize(connectorRec?.notes || '', contentWidth - 5);
+  doc.text(connectorNote, marginLeft, yPos);
+  yPos += connectorNote.length * 4;
+  
+  // Footer en todas las páginas
+  const totalPages = doc.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
+    doc.setFont('helvetica', 'normal');
+    doc.text('© 2024 FAGOR Automation. All rights reserved.', pageWidth / 2, pageHeight - 15, { align: 'center' });
+    doc.text('Open to your world', pageWidth / 2, pageHeight - 10, { align: 'center' });
+    doc.text(`${language === 'es' ? 'Página' : 'Page'} ${i} ${language === 'es' ? 'de' : 'of'} ${totalPages}`, pageWidth - marginRight, pageHeight - 10, { align: 'right' });
+  }
   
   // Descargar PDF
   const fileName = `FXM_to_FKM_Conversion_${comparison.fxm.model.replace(/\s+/g, '_')}_to_${comparison.fkm.model.replace(/\s+/g, '_')}.pdf`;
