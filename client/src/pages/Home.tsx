@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Globe, Search, ArrowLeftRight } from "lucide-react";
+import { Globe, Search, ArrowLeftRight, QrCode } from "lucide-react";
 import { APP_LOGO } from "@/const";
 import { useLanguage, Language } from "@/contexts/LanguageContext";
 import type { MotorDatabase, Motor, ComparisonResult } from "@/types/motor";
@@ -23,6 +23,7 @@ import ConversionHistoryPanel from "@/components/ConversionHistoryPanel";
 import { useConversionHistory } from "@/contexts/ConversionHistoryContext";
 import MultiComparePanel from "@/components/MultiComparePanel";
 import { useMultiCompare } from "@/contexts/MultiCompareContext";
+import { QRScanner } from "@/components/QRScanner";
 import { exportConsolidatedExcel } from "@/utils/consolidatedExcelExporter";
 
 export default function Home() {
@@ -40,6 +41,7 @@ export default function Home() {
   const [activeFilters, setActiveFilters] = useState<AdvancedFilters>({});
   const [hasFilters, setHasFilters] = useState(false);
   const [conversionDirection, setConversionDirection] = useState<'FXM_TO_FKM' | 'FKM_TO_FXM'>('FXM_TO_FKM');
+  const [showQRScanner, setShowQRScanner] = useState(false);
   
   // Cargar base de datos
   useEffect(() => {
@@ -265,6 +267,14 @@ export default function Home() {
                 <Search className="w-4 h-4 mr-2" />
                 {t('searchButton')}
               </Button>
+              <Button
+                onClick={() => setShowQRScanner(true)}
+                variant="outline"
+                className="border-primary text-primary hover:bg-primary/10"
+                title={t('scanQR')}
+              >
+                <QrCode className="w-5 h-5" />
+              </Button>
             </div>
             
             <AdvancedFiltersComponent 
@@ -414,6 +424,19 @@ export default function Home() {
           setEquivalentMotorsB([motorB]);
         }}
       />
+
+      {/* QR Scanner Modal */}
+      {showQRScanner && (
+        <QRScanner
+          onScan={(decodedText) => {
+            setSearchQuery(decodedText);
+            setShowQRScanner(false);
+            // Trigger search automatically
+            setTimeout(() => handleSearch(), 100);
+          }}
+          onClose={() => setShowQRScanner(false)}
+        />
+      )}
 
       {/* Footer */}
       <footer className="bg-slate-900 text-white py-6 mt-12">
