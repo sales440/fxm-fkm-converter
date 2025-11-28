@@ -119,3 +119,12 @@
 - [ ] Agregar validación de entradas
 - [x] Mostrar advertencias si la longitud es muy corta
 - [x] Probar calculadora con diferentes motores
+
+## Corrección de Exportaciones
+- [x] Diagnosticar por qué el PDF se genera en blanco
+- [x] Corregir exportador PDF para generar contenido correctamente
+- [x] Convertir logo de FAGOR a base64 para insertar en Excel
+- [x] Implementar inserción de logo como imagen real en Excel (no texto)
+- [x] Probar exportación PDF con contenido completo
+- [x] Probar exportación Excel con logo de FAGOR como imagen
+- [x] Validar que ambos reportes incluyan todas las secciones
