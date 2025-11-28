@@ -75,3 +75,16 @@
 - [x] Aplicar fuente Arial Bold blanca a todos los títulos
 - [x] Mejorar formato general del Excel (bordes, alineación, anchos de columna)
 - [x] Probar descarga de Excel con nuevo formato
+
+## Recomendaciones de Encoders y Conectores
+- [x] Analizar manual FXM para extraer información de encoders disponibles
+- [x] Analizar manual FKM para extraer información de encoders disponibles
+- [x] Analizar manual FXM para extraer información de conectores de potencia
+- [x] Analizar manual FKM para extraer información de conectores de potencia
+- [x] Crear base de datos de encoders por familia de motores
+- [x] Crear base de datos de conectores de potencia por familia de motores
+- [x] Agregar sección de recomendaciones de encoders al reporte
+- [x] Agregar sección de recomendaciones de conectores al reporte
+- [ ] Actualizar exportación PDF con nueva información (pendiente)
+- [ ] Actualizar exportación Excel con nueva información (pendiente)
+- [x] Probar reportes con recomendaciones completas

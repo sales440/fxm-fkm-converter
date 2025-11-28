@@ -38,6 +38,21 @@ export interface ElectricalComparison {
   percent: number | null;
 }
 
+export interface EncoderRecommendation {
+  fxmEncoder: string;
+  recommendedFkmEncoders: string[];
+  bestMatch: string;
+  notes: string;
+}
+
+export interface ConnectorRecommendation {
+  fxmConnector: string;
+  recommendedFkmConnector: string;
+  alternativeConnectors: string[];
+  wireGauge: string;
+  notes: string;
+}
+
 export interface ComparisonResult {
   fxm: Motor;
   fkm: Motor;
@@ -60,4 +75,6 @@ export interface ComparisonResult {
       m: { fxm: number | null; fkm: number | null; diff: number | null };
     };
   };
+  encoderRecommendation?: EncoderRecommendation;
+  connectorRecommendation?: ConnectorRecommendation;
 }

@@ -1,0 +1,198 @@
+{
+  "fxm_encoders": {
+    "E1": {
+      "name": "Sinusoidal SinCoder 1024 ppt",
+      "type": "Sinusoidal",
+      "resolution": "1024 ppt",
+      "description": "Encoder sinusoidal incremental de alta resolución"
+    },
+    "A1": {
+      "name": "Absolute multi-turn SinCos 1024 ppt",
+      "type": "Absolute Multi-turn",
+      "resolution": "1024 ppt",
+      "description": "Encoder absoluto multivuelta con protocolo SinCos"
+    },
+    "I0": {
+      "name": "Incremental TTL 2500 ppt",
+      "type": "TTL Incremental",
+      "resolution": "2500 ppt",
+      "description": "Encoder incremental TTL estándar"
+    }
+  },
+  "fkm_encoders": {
+    "A3": {
+      "name": "Multi-turn absolute sinusoidal 1Vpp encoder 1024 ppt - taper shaft",
+      "type": "Absolute Multi-turn",
+      "resolution": "1024 ppt",
+      "voltage": "1Vpp",
+      "shaft": "Taper",
+      "description": "Encoder absoluto multivuelta sinusoidal de alta resolución con eje cónico"
+    },
+    "A4": {
+      "name": "Multi turn absolute sinusoidal 1Vpp encoder 128 ppt",
+      "type": "Absolute Multi-turn",
+      "resolution": "128 ppt",
+      "voltage": "1Vpp",
+      "description": "Encoder absoluto multivuelta sinusoidal de resolución estándar"
+    },
+    "E3": {
+      "name": "Sinusoidal 1Vpp encoder 1024 ppt - taper shaft",
+      "type": "Sinusoidal Incremental",
+      "resolution": "1024 ppt",
+      "voltage": "1Vpp",
+      "shaft": "Taper",
+      "description": "Encoder sinusoidal incremental de alta resolución con eje cónico"
+    },
+    "E4": {
+      "name": "Sinusoidal 1Vpp encoder 128 ppt",
+      "type": "Sinusoidal Incremental",
+      "resolution": "128 ppt",
+      "voltage": "1Vpp",
+      "description": "Encoder sinusoidal incremental de resolución estándar"
+    },
+    "I0": {
+      "name": "TTL incremental encoder 2500 ppt",
+      "type": "TTL Incremental",
+      "resolution": "2500 ppt",
+      "description": "Encoder incremental TTL de alta resolución"
+    }
+  },
+  "encoder_conversion_recommendations": {
+    "E1_to_FKM": {
+      "recommended": ["E3", "E4"],
+      "best_match": "E3",
+      "notes": "El encoder E3 de FKM es el equivalente más cercano al E1 de FXM con 1024 ppt. Si se requiere menor resolución, usar E4 con 128 ppt."
+    },
+    "A1_to_FKM": {
+      "recommended": ["A3", "A4"],
+      "best_match": "A3",
+      "notes": "El encoder A3 de FKM es el equivalente directo al A1 de FXM, ambos con 1024 ppt y capacidad multivuelta absoluta."
+    },
+    "I0_to_FKM": {
+      "recommended": ["I0"],
+      "best_match": "I0",
+      "notes": "El encoder I0 de FKM es compatible con el I0 de FXM, ambos son TTL incrementales de 2500 ppt."
+    }
+  },
+  "fxm_power_connectors": {
+    "MC_23": {
+      "name": "MC 23",
+      "cable_types": ["MPC-4x1.5", "MPC-4x2.5", "MPC-4x4"],
+      "description": "Conector estándar para motores FXM pequeños y medianos",
+      "wire_gauge": "1.5 - 4 mm²"
+    },
+    "MC_46": {
+      "name": "MC 46",
+      "cable_types": ["MPC-4x6", "MPC-4x10", "MPC-4x16"],
+      "description": "Conector para motores FXM grandes y de alta potencia",
+      "wire_gauge": "6 - 16 mm²"
+    },
+    "MC_80": {
+      "name": "MC 80",
+      "cable_types": ["MPC-4x16", "MPC-4x25"],
+      "description": "Conector para motores FXM de muy alta potencia",
+      "wire_gauge": "16 - 25 mm²"
+    }
+  },
+  "fkm_power_connectors_by_family": {
+    "FKM43": {
+      "recommended_connector": "MPC-4x1.5",
+      "alternative_connectors": ["MPC-4x2.5"],
+      "wire_gauge": "1.5 - 2.5 mm²",
+      "notes": "Motor compacto de baja potencia"
+    },
+    "FKM44": {
+      "recommended_connector": "MPC-4x1.5",
+      "alternative_connectors": ["MPC-4x2.5"],
+      "wire_gauge": "1.5 - 2.5 mm²",
+      "notes": "Motor compacto de baja potencia"
+    },
+    "FKM62": {
+      "recommended_connector": "MPC-4x2.5",
+      "alternative_connectors": ["MPC-4x4"],
+      "wire_gauge": "2.5 - 4 mm²",
+      "notes": "Motor mediano de potencia estándar"
+    },
+    "FKM63": {
+      "recommended_connector": "MPC-4x2.5",
+      "alternative_connectors": ["MPC-4x4"],
+      "wire_gauge": "2.5 - 4 mm²",
+      "notes": "Motor mediano de potencia estándar"
+    },
+    "FKM64": {
+      "recommended_connector": "MPC-4x2.5",
+      "alternative_connectors": ["MPC-4x4"],
+      "wire_gauge": "2.5 - 4 mm²",
+      "notes": "Motor mediano de potencia estándar"
+    },
+    "FKM66": {
+      "recommended_connector": "MPC-4x4",
+      "alternative_connectors": ["MPC-4x6"],
+      "wire_gauge": "4 - 6 mm²",
+      "notes": "Motor mediano-grande de potencia media-alta"
+    },
+    "FKM82": {
+      "recommended_connector": "MPC-4x4",
+      "alternative_connectors": ["MPC-4x6", "MPC-4x10"],
+      "wire_gauge": "4 - 10 mm²",
+      "notes": "Motor grande de potencia media-alta"
+    },
+    "FKM83": {
+      "recommended_connector": "MPC-4x6",
+      "alternative_connectors": ["MPC-4x10", "MPC-4x16"],
+      "wire_gauge": "6 - 16 mm²",
+      "notes": "Motor grande de alta potencia"
+    },
+    "FKM84": {
+      "recommended_connector": "MPC-4x10",
+      "alternative_connectors": ["MPC-4x16"],
+      "wire_gauge": "10 - 16 mm²",
+      "notes": "Motor grande de muy alta potencia"
+    },
+    "FKM85": {
+      "recommended_connector": "MPC-4x10",
+      "alternative_connectors": ["MPC-4x16"],
+      "wire_gauge": "10 - 16 mm²",
+      "notes": "Motor grande de muy alta potencia"
+    },
+    "FKM94": {
+      "recommended_connector": "MPC-4x16",
+      "alternative_connectors": ["MPC-4x25"],
+      "wire_gauge": "16 - 25 mm²",
+      "notes": "Motor extra grande de muy alta potencia"
+    },
+    "FKM95": {
+      "recommended_connector": "MPC-4x16",
+      "alternative_connectors": ["MPC-4x25"],
+      "wire_gauge": "16 - 25 mm²",
+      "notes": "Motor extra grande de muy alta potencia"
+    },
+    "FKM96": {
+      "recommended_connector": "MPC-4x25",
+      "alternative_connectors": [],
+      "wire_gauge": "25 mm²",
+      "notes": "Motor extra grande de potencia industrial máxima"
+    }
+  },
+  "conversion_guidelines": {
+    "encoder_compatibility": {
+      "title": "Compatibilidad de Encoders",
+      "description": "Los encoders FKM son generalmente compatibles con los sistemas de control que usaban motores FXM. Se recomienda mantener el mismo tipo de encoder (absoluto o incremental) para evitar cambios en la programación del control.",
+      "important_notes": [
+        "Los encoders con referencia I0 solo se instalan en modelos con bobinado tipo F (220V AC)",
+        "Los encoders con referencia E1 o A1 solo se instalan en modelos con bobinado tipo A (400V AC)",
+        "Verificar compatibilidad del protocolo de comunicación con el drive existente"
+      ]
+    },
+    "power_connector_compatibility": {
+      "title": "Compatibilidad de Conectores de Potencia",
+      "description": "Los conectores de potencia deben seleccionarse según la corriente nominal del motor FKM equivalente. En general, los motores FKM requieren conectores de mayor calibre debido a mejoras en eficiencia y densidad de potencia.",
+      "important_notes": [
+        "Verificar que el calibre del cable sea adecuado para la corriente del motor FKM",
+        "Los conectores MC 23, MC 46 y MC 80 son estándar en ambas series",
+        "Considerar la longitud del cable para evitar caídas de tensión",
+        "Los motores FKM pueden requerir un conector de mayor calibre que el FXM equivalente"
+      ]
+    }
+  }
+}

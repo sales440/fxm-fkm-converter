@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import { exportToPDF } from "@/lib/pdfExporter";
 import { exportToExcel } from "@/lib/excelExporter";
 import MotorDimensionDiagram from "@/components/MotorDimensionDiagram";
+import { getEncoderRecommendation, getConnectorRecommendation } from "@/lib/encoderConnectorRecommendations";
+import { AlertCircle, CheckCircle2 } from "lucide-react";
 
 interface MotorComparisonReportProps {
   comparison: ComparisonResult;
@@ -15,6 +17,10 @@ interface MotorComparisonReportProps {
 
 export default function MotorComparisonReport({ comparison, conversionDirection = 'FXM_TO_FKM' }: MotorComparisonReportProps) {
   const { t, language } = useLanguage();
+  
+  // Obtener recomendaciones de encoders y conectores
+  const encoderRec = getEncoderRecommendation(comparison.fxm.model);
+  const connectorRec = getConnectorRecommendation(comparison.fxm.model, comparison.fkm.model);
   
   const handleDownloadPDF = async () => {
     try {
@@ -256,6 +262,85 @@ export default function MotorComparisonReport({ comparison, conversionDirection 
         </div>
       </CardContent>
     </Card>
+    
+    {/* Recomendaciones de Encoders y Conectores */}
+    {(encoderRec || connectorRec) && (
+      <Card className="mt-6 border-2 border-fagor-red">
+        <CardHeader className="bg-fagor-red">
+          <CardTitle className="text-white font-bold text-xl flex items-center gap-2">
+            <AlertCircle className="h-6 w-6" />
+            Recomendaciones Técnicas / Technical Recommendations
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pt-6">
+          {encoderRec && (
+            <div className="mb-6">
+              <h3 className="text-lg font-bold text-fagor-red mb-3 flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5" />
+                Encoders
+              </h3>
+              <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                  <div>
+                    <p className="text-sm text-slate-600 font-semibold">FXM Encoder:</p>
+                    <p className="text-base font-bold text-slate-800">{encoderRec.fxmEncoder}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-slate-600 font-semibold">Recommended FKM Encoder:</p>
+                    <p className="text-base font-bold text-fagor-red">{encoderRec.bestMatch}</p>
+                  </div>
+                </div>
+                <div className="mb-3">
+                  <p className="text-sm text-slate-600 font-semibold">Alternative Options:</p>
+                  <p className="text-base text-slate-700">{encoderRec.recommendedFkmEncoders.join(', ')}</p>
+                </div>
+                <div className="bg-blue-50 p-3 rounded border-l-4 border-blue-500">
+                  <p className="text-sm text-blue-900">
+                    <span className="font-semibold">Note:</span> {encoderRec.notes}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {connectorRec && (
+            <div>
+              <h3 className="text-lg font-bold text-fagor-red mb-3 flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5" />
+                Power Connectors / Conectores de Potencia
+              </h3>
+              <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                  <div>
+                    <p className="text-sm text-slate-600 font-semibold">FXM Connector:</p>
+                    <p className="text-base font-bold text-slate-800">{connectorRec.fxmConnector}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-slate-600 font-semibold">Recommended FKM Connector:</p>
+                    <p className="text-base font-bold text-fagor-red">{connectorRec.recommendedFkmConnector}</p>
+                  </div>
+                </div>
+                <div className="mb-3">
+                  <p className="text-sm text-slate-600 font-semibold">Wire Gauge / Calibre de Cable:</p>
+                  <p className="text-base text-slate-700 font-medium">{connectorRec.wireGauge}</p>
+                </div>
+                {connectorRec.alternativeConnectors.length > 0 && (
+                  <div className="mb-3">
+                    <p className="text-sm text-slate-600 font-semibold">Alternative Connectors:</p>
+                    <p className="text-base text-slate-700">{connectorRec.alternativeConnectors.join(', ')}</p>
+                  </div>
+                )}
+                <div className="bg-amber-50 p-3 rounded border-l-4 border-amber-500">
+                  <p className="text-sm text-amber-900">
+                    <span className="font-semibold">Note:</span> {connectorRec.notes}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    )}
     
     {/* Diagrama dimensional */}
     <div className="mt-6">
