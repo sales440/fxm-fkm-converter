@@ -19,9 +19,16 @@ import {
 } from "@/lib/motorConverter";
 import MotorComparisonReport from "@/components/MotorComparisonReport";
 import AdvancedFiltersComponent from "@/components/AdvancedFilters";
+import ConversionHistoryPanel from "@/components/ConversionHistoryPanel";
+import { useConversionHistory } from "@/contexts/ConversionHistoryContext";
+import MultiComparePanel from "@/components/MultiComparePanel";
+import { useMultiCompare } from "@/contexts/MultiCompareContext";
+import { exportConsolidatedExcel } from "@/utils/consolidatedExcelExporter";
 
 export default function Home() {
   const { language, setLanguage, t } = useLanguage();
+  const { addToHistory } = useConversionHistory();
+  const { addItem: addToMultiCompare, hasItem: hasInMultiCompare, items: multiCompareItems } = useMultiCompare();
   const [database, setDatabase] = useState<MotorDatabase | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchType, setSearchType] = useState<'FXM' | 'FKM' | 'AUTO'>('AUTO');
@@ -119,7 +126,16 @@ export default function Home() {
   const handleSelectMotorB = (motor: Motor) => {
     if (!selectedMotorA) return;
     setSelectedMotorB(motor);
-    setComparison(compareMotors(selectedMotorA, motor));
+    const newComparison = compareMotors(selectedMotorA, motor);
+    setComparison(newComparison);
+    
+    // Agregar al historial
+    addToHistory({
+      motorA: selectedMotorA,
+      motorB: motor,
+      comparison: newComparison,
+      direction: conversionDirection
+    });
   };
   
   const handleApplyFilters = (filters: AdvancedFilters) => {
@@ -329,19 +345,39 @@ export default function Home() {
                 {equivalentMotorsB.length > 0 ? (
                   <div className="space-y-2">
                     {equivalentMotorsB.map((motor, idx) => (
-                      <Button
-                        key={idx}
-                        variant={selectedMotorB?.model === motor.model ? "default" : "outline"}
-                        className="w-full justify-start text-left h-auto py-3"
-                        onClick={() => handleSelectMotorB(motor)}
-                      >
-                        <div className="flex flex-col w-full">
-                          <span className="font-bold">{motor.model}</span>
-                          <span className="text-sm opacity-90">
-                            {t('mo')}: {motor.mo} Nm | {t('rpm')}: {motor.rpm} rpm
-                          </span>
-                        </div>
-                      </Button>
+                      <div key={idx} className="flex gap-2">
+                        <Button
+                          variant={selectedMotorB?.model === motor.model ? "default" : "outline"}
+                          className="flex-1 justify-start text-left h-auto py-3"
+                          onClick={() => handleSelectMotorB(motor)}
+                        >
+                          <div className="flex flex-col w-full">
+                            <span className="font-bold">{motor.model}</span>
+                            <span className="text-sm opacity-90">
+                              {t('mo')}: {motor.mo} Nm | {t('rpm')}: {motor.rpm} rpm
+                            </span>
+                          </div>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className={hasInMultiCompare(selectedMotorA!.model) ? "bg-green-50 border-green-600 text-green-700" : ""}
+                          onClick={() => {
+                            if (selectedMotorA) {
+                              const newComparison = compareMotors(selectedMotorA, motor);
+                              addToMultiCompare({
+                                motorA: selectedMotorA,
+                                motorB: motor,
+                                comparison: newComparison,
+                                direction: conversionDirection
+                              });
+                            }
+                          }}
+                          title={t('addToCompare')}
+                        >
+                          +
+                        </Button>
+                      </div>
                     ))}
                   </div>
                 ) : (
@@ -360,6 +396,24 @@ export default function Home() {
           />
         )}
       </main>
+
+      {/* Panel de Comparación Múltiple */}
+      <MultiComparePanel 
+        onExportConsolidated={() => {
+          exportConsolidatedExcel(multiCompareItems, language);
+        }}
+      />
+
+      {/* Panel de Historial */}
+      <ConversionHistoryPanel 
+        onSelectConversion={(motorA, motorB, direction) => {
+          setSelectedMotorA(motorA);
+          setSelectedMotorB(motorB);
+          setConversionDirection(direction);
+          setComparison(compareMotors(motorA, motorB));
+          setEquivalentMotorsB([motorB]);
+        }}
+      />
 
       {/* Footer */}
       <footer className="bg-slate-900 text-white py-6 mt-12">

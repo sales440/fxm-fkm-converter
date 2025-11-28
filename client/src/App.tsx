@@ -5,6 +5,8 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
+import { ConversionHistoryProvider } from "./contexts/ConversionHistoryContext";
+import { MultiCompareProvider } from "./contexts/MultiCompareContext";
 import Home from "./pages/Home";
 
 function Router() {
@@ -23,10 +25,14 @@ function App() {
     <ErrorBoundary>
       <ThemeProvider defaultTheme="light">
         <LanguageProvider>
-          <TooltipProvider>
+          <ConversionHistoryProvider>
+            <MultiCompareProvider>
+            <TooltipProvider>
             <Toaster />
             <Router />
           </TooltipProvider>
+            </MultiCompareProvider>
+          </ConversionHistoryProvider>
         </LanguageProvider>
       </ThemeProvider>
     </ErrorBoundary>
