@@ -1,10 +1,15 @@
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import type { ComparisonResult } from '@/types/motor';
+import { getEncoderRecommendation, getConnectorRecommendation } from './encoderConnectorRecommendations';
 
 const FAGOR_RED: [number, number, number] = [220, 30, 38]; // RGB para #DC1E26
 
 export async function exportToPDF(comparison: ComparisonResult, language: string = 'es') {
+  // Obtener recomendaciones
+  const encoderRec = getEncoderRecommendation(comparison.fxm.model);
+  const connectorRec = getConnectorRecommendation(comparison.fxm.model, comparison.fkm.model);
+  
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -213,8 +218,84 @@ export async function exportToPDF(comparison: ComparisonResult, language: string
     }
   });
   
+  // Actualizar yPos después de la tabla de dimensiones
+  yPos = (doc as any).lastAutoTable.finalY + 10;
+  
+  // Sección de Recomendaciones Técnicas
+  if (encoderRec || connectorRec) {
+    // Título de sección
+    doc.setFontSize(12);
+    doc.setTextColor(FAGOR_RED[0], FAGOR_RED[1], FAGOR_RED[2]);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Technical Recommendations', 15, yPos);
+    yPos += 8;
+    
+    // Recomendaciones de Encoders
+    if (encoderRec) {
+      doc.setFontSize(10);
+      doc.setTextColor(70, 70, 70);
+      doc.setFont('helvetica', 'bold');
+      doc.text('ENCODERS', 15, yPos);
+      yPos += 6;
+      
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`FXM Encoder: ${encoderRec.fxmEncoder}`, 20, yPos);
+      yPos += 5;
+      doc.text(`Recommended FKM Encoder: ${encoderRec.bestMatch}`, 20, yPos);
+      yPos += 5;
+      doc.text(`Alternative Options: ${encoderRec.recommendedFkmEncoders.join(', ')}`, 20, yPos);
+      yPos += 5;
+      
+      // Nota con fondo azul claro
+      doc.setFillColor(219, 234, 254); // bg-blue-50
+      doc.rect(20, yPos - 3, pageWidth - 35, 12, 'F');
+      doc.setTextColor(30, 58, 138); // text-blue-900
+      doc.setFont('helvetica', 'bold');
+      doc.text('Note:', 22, yPos);
+      doc.setFont('helvetica', 'normal');
+      const noteLines = doc.splitTextToSize(encoderRec.notes, pageWidth - 50);
+      doc.text(noteLines, 35, yPos);
+      yPos += 5 * noteLines.length + 8;
+    }
+    
+    // Recomendaciones de Conectores
+    if (connectorRec) {
+      doc.setFontSize(10);
+      doc.setTextColor(70, 70, 70);
+      doc.setFont('helvetica', 'bold');
+      doc.text('POWER CONNECTORS', 15, yPos);
+      yPos += 6;
+      
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`FXM Connector: ${connectorRec.fxmConnector}`, 20, yPos);
+      yPos += 5;
+      doc.text(`Recommended FKM Connector: ${connectorRec.recommendedFkmConnector}`, 20, yPos);
+      yPos += 5;
+      doc.text(`Wire Gauge: ${connectorRec.wireGauge}`, 20, yPos);
+      yPos += 5;
+      
+      if (connectorRec.alternativeConnectors.length > 0) {
+        doc.text(`Alternative Connectors: ${connectorRec.alternativeConnectors.join(', ')}`, 20, yPos);
+        yPos += 5;
+      }
+      
+      // Nota con fondo amarillo claro
+      doc.setFillColor(254, 252, 232); // bg-amber-50
+      doc.rect(20, yPos - 3, pageWidth - 35, 12, 'F');
+      doc.setTextColor(120, 53, 15); // text-amber-900
+      doc.setFont('helvetica', 'bold');
+      doc.text('Note:', 22, yPos);
+      doc.setFont('helvetica', 'normal');
+      const noteLines = doc.splitTextToSize(connectorRec.notes, pageWidth - 50);
+      doc.text(noteLines, 35, yPos);
+      yPos += 5 * noteLines.length + 8;
+    }
+  }
+  
   // Footer
-  const finalY = (doc as any).lastAutoTable.finalY || yPos + 60;
+  const finalY = yPos;
   doc.setFontSize(8);
   doc.setTextColor(100, 100, 100);
   doc.text('© 2024 FAGOR Automation. All rights reserved.', pageWidth / 2, pageHeight - 10, { align: 'center' });

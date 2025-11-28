@@ -85,6 +85,37 @@
 - [x] Crear base de datos de conectores de potencia por familia de motores
 - [x] Agregar sección de recomendaciones de encoders al reporte
 - [x] Agregar sección de recomendaciones de conectores al reporte
-- [ ] Actualizar exportación PDF con nueva información (pendiente)
-- [ ] Actualizar exportación Excel con nueva información (pendiente)
+- [x] Actualizar exportación PDF con nueva información
+- [x] Actualizar exportación Excel con nueva información
 - [x] Probar reportes con recomendaciones completas
+
+## Actualización de Exportaciones con Recomendaciones
+- [x] Actualizar exportador PDF para incluir sección de encoders
+- [x] Actualizar exportador PDF para incluir sección de conectores
+- [x] Actualizar exportador Excel para incluir sección de encoders
+- [x] Actualizar exportador Excel para incluir sección de conectores
+- [x] Probar exportación PDF con recomendaciones
+- [x] Probar exportación Excel con recomendaciones
+
+## Imágenes de Conectores y Diagramas
+- [x] Generar imagen de conector MPC-4x1.5
+- [x] Generar imagen de conector MPC-4x2.5
+- [x] Generar imagen de conector MPC-4x4
+- [ ] Generar imagen de conector MPC-4x6
+- [ ] Generar imagen de conector MPC-4x10
+- [ ] Generar imagen de conector MPC-4x16
+- [ ] Generar imagen de conector MPC-4x25
+- [x] Generar imagen de conector MC series (FXM)
+- [ ] Generar imagen de conector MC 46 (FXM)
+- [x] Agregar diagrama comparativo de encoders
+- [x] Agregar galería de imágenes de conectores en el reporte
+- [ ] Implementar zoom o vista ampliada de imágenes
+
+## Calculadora de Longitud de Cables
+- [x] Crear componente CableLengthCalculator
+- [x] Implementar fórmula de cálculo según corriente y calibre
+- [ ] Agregar tabla de referencia de longitudes máximas
+- [x] Integrar calculadora en el reporte comparativo
+- [ ] Agregar validación de entradas
+- [x] Mostrar advertencias si la longitud es muy corta
+- [x] Probar calculadora con diferentes motores

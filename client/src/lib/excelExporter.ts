@@ -1,7 +1,12 @@
 import * as XLSX from 'xlsx-js-style';
 import type { ComparisonResult } from '@/types/motor';
+import { getEncoderRecommendation, getConnectorRecommendation } from './encoderConnectorRecommendations';
 
 export async function exportToExcel(comparison: ComparisonResult, language: string = 'es') {
+  // Obtener recomendaciones
+  const encoderRec = getEncoderRecommendation(comparison.fxm.model);
+  const connectorRec = getConnectorRecommendation(comparison.fxm.model, comparison.fkm.model);
+  
   // Crear workbook
   const wb = XLSX.utils.book_new();
   
@@ -131,6 +136,39 @@ export async function exportToExcel(comparison: ComparisonResult, language: stri
     comparison.differences.dimensions.m.diff
   ]);
   data.push(['']); // Espacio
+  
+  // Sección de Recomendaciones Técnicas
+  if (encoderRec || connectorRec) {
+    data.push(['']); // Espacio adicional
+    data.push(['Technical Recommendations']);
+    data.push(['']); // Espacio
+    
+    // Recomendaciones de Encoders
+    if (encoderRec) {
+      data.push(['ENCODERS']);
+      data.push(['']); // Espacio
+      data.push(['FXM Encoder:', encoderRec.fxmEncoder]);
+      data.push(['Recommended FKM Encoder:', encoderRec.bestMatch]);
+      data.push(['Alternative Options:', encoderRec.recommendedFkmEncoders.join(', ')]);
+      data.push(['Note:', encoderRec.notes]);
+      data.push(['']); // Espacio
+    }
+    
+    // Recomendaciones de Conectores
+    if (connectorRec) {
+      data.push(['POWER CONNECTORS']);
+      data.push(['']); // Espacio
+      data.push(['FXM Connector:', connectorRec.fxmConnector]);
+      data.push(['Recommended FKM Connector:', connectorRec.recommendedFkmConnector]);
+      data.push(['Wire Gauge:', connectorRec.wireGauge]);
+      if (connectorRec.alternativeConnectors.length > 0) {
+        data.push(['Alternative Connectors:', connectorRec.alternativeConnectors.join(', ')]);
+      }
+      data.push(['Note:', connectorRec.notes]);
+      data.push(['']); // Espacio
+    }
+  }
+  data.push(['']); // Espacio
   data.push(['']); // Espacio
   
   // Footer
@@ -213,8 +251,19 @@ export async function exportToExcel(comparison: ComparisonResult, language: stri
     });
   }
   
-  // Título "Mechanical Dimensions" (fila 21)
-  if (ws['A21']) ws['A21'].s = titleStyle;
+  // Título "Mechanical Dimensions"
+  const mechanicalRow = 21; // Ajustar si cambia
+  if (ws[`A${mechanicalRow}`]) ws[`A${mechanicalRow}`].s = titleStyle;
+  
+  // Título "Technical Recommendations" (dinámico)
+  let recommendationsRow = 31; // Aproximado, ajustar dinámicamente
+  if (ws[`A${recommendationsRow}`]) ws[`A${recommendationsRow}`].s = titleStyle;
+  
+  // Subtítulos "ENCODERS" y "POWER CONNECTORS"
+  const encodersRow = recommendationsRow + 2;
+  const connectorsRow = encodersRow + 6; // Aproximado
+  if (ws[`A${encodersRow}`]) ws[`A${encodersRow}`].s = { ...titleStyle, fill: { fgColor: { rgb: '4A5568' } } };
+  if (ws[`A${connectorsRow}`]) ws[`A${connectorsRow}`].s = { ...titleStyle, fill: { fgColor: { rgb: '4A5568' } } };
   
   // Header de tabla dimensional (fila 23)
   ['A23', 'B23', 'C23', 'D23'].forEach(cell => {

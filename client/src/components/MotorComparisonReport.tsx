@@ -9,6 +9,7 @@ import { exportToExcel } from "@/lib/excelExporter";
 import MotorDimensionDiagram from "@/components/MotorDimensionDiagram";
 import { getEncoderRecommendation, getConnectorRecommendation } from "@/lib/encoderConnectorRecommendations";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
+import CableLengthCalculator from "@/components/CableLengthCalculator";
 
 interface MotorComparisonReportProps {
   comparison: ComparisonResult;
@@ -299,6 +300,14 @@ export default function MotorComparisonReport({ comparison, conversionDirection 
                     <span className="font-semibold">Note:</span> {encoderRec.notes}
                   </p>
                 </div>
+                {/* Diagrama comparativo de encoders */}
+                <div className="mt-4">
+                  <img 
+                    src="/encoder-comparison.png" 
+                    alt="Encoder Comparison Diagram" 
+                    className="w-full rounded-lg border border-slate-300 shadow-sm"
+                  />
+                </div>
               </div>
             </div>
           )}
@@ -335,6 +344,36 @@ export default function MotorComparisonReport({ comparison, conversionDirection 
                     <span className="font-semibold">Note:</span> {connectorRec.notes}
                   </p>
                 </div>
+                {/* Imágenes de conectores */}
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-700 mb-2">FXM Connector (MC Series):</p>
+                    <img 
+                      src="/connector-mc-series.png" 
+                      alt="MC Series Connector" 
+                      className="w-full rounded-lg border border-slate-300 shadow-sm"
+                    />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-700 mb-2">FKM Connector ({connectorRec.recommendedFkmConnector}):</p>
+                    <img 
+                      src={`/connector-${connectorRec.recommendedFkmConnector.toLowerCase().replace(/\s+/g, '-')}.png`}
+                      alt={`${connectorRec.recommendedFkmConnector} Connector`}
+                      className="w-full rounded-lg border border-slate-300 shadow-sm"
+                      onError={(e) => {
+                        // Fallback si la imagen específica no existe
+                        const target = e.target as HTMLImageElement;
+                        if (connectorRec.recommendedFkmConnector.includes('4x1.5')) {
+                          target.src = '/connector-mpc-4x1.5.png';
+                        } else if (connectorRec.recommendedFkmConnector.includes('4x2.5')) {
+                          target.src = '/connector-mpc-4x2.5.png';
+                        } else {
+                          target.src = '/connector-mpc-4x4.png';
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -346,6 +385,14 @@ export default function MotorComparisonReport({ comparison, conversionDirection 
     <div className="mt-6">
       <MotorDimensionDiagram fxm={comparison.fxm} fkm={comparison.fkm} />
     </div>
+    
+    {/* Calculadora de longitud de cables */}
+    {connectorRec && comparison.fxm.io && (
+      <CableLengthCalculator 
+        motorCurrent={comparison.fxm.io} 
+        wireGauge={connectorRec.wireGauge}
+      />
+    )}
     </>
   );
 }
