@@ -20,6 +20,12 @@ const encoderConversionMap: Record<string, { recommended: string[]; bestMatch: s
 };
 
 const fkmConnectorsByFamily: Record<string, { recommended: string; alternatives: string[]; wireGauge: string; notes: string }> = {
+  'FKM22': {
+    recommended: 'MC-20/6 (84080060)',
+    alternatives: ['MPC-4x1.5'],
+    wireGauge: '1.5 mm²',
+    notes: 'Motor pequeño FKM22 - Reemplazo de FXM14. Requiere enchufe MC-20/6 (84080060), cable encoder EEC-SP-xx y cable alimentación MPC-4X1.5-xxM (longitud según cliente)'
+  },
   'FKM43': {
     recommended: 'MPC-4x1.5',
     alternatives: ['MPC-4x2.5'],
