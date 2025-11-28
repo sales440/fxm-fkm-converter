@@ -5,13 +5,23 @@ import type { MotorDatabase, Motor, ComparisonResult, DimensionComparison, Elect
  * Elimina espacios, puntos extras y convierte a mayúsculas
  */
 function normalizeModel(model: string): string {
-  return model
+  let normalized = model
     .toUpperCase()
     .replace(/\s+/g, '') // Eliminar espacios
+    .replace(/-/g, '.') // Convertir guiones a puntos
     .replace(/\.+/g, '.') // Normalizar puntos múltiples
-    .replace(/[xX]{2,}/g, 'XX') // Normalizar xx, XX, etc.
-    .replace(/E\d+/gi, 'XX') // Convertir E1, E2, etc. a XX
-    .replace(/\.\d{3}$/, '00'); // Convertir .000, .001, etc. a 00
+    .replace(/[xX]{2,}/g, 'XX'); // Normalizar xx, XX, etc.
+  
+  // Convertir formatos como E1, E2, etc. a XX
+  normalized = normalized.replace(/\.E\d+/gi, '.XX');
+  
+  // Convertir sufijos numéricos finales a formato estándar
+  // Ejemplos: -010 -> .x10, -000 -> .x00, .010 -> .x10
+  normalized = normalized.replace(/\.(\d)(\d)(\d)$/,  (match, d1, d2, d3) => {
+    return `.X${d2}${d3}`;
+  });
+  
+  return normalized;
 }
 
 /**
