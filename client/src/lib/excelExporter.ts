@@ -310,6 +310,175 @@ export async function exportToExcel(comparison: ComparisonResult, language: stri
   
   currentRow += 2;
   
+  // ============= SECCIÓN: DIFERENCIAS MECÁNICAS DE BRIDAS =============
+  worksheet.mergeCells(`A${currentRow}:E${currentRow}`);
+  const flangeTitleCell = worksheet.getCell(`A${currentRow}`);
+  flangeTitleCell.value = language === 'es' ? 'Diferencias Mecánicas de Bridas' : 'Flange Mechanical Differences';
+  flangeTitleCell.font = { name: 'Arial', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+  flangeTitleCell.fill = {
+    type: 'pattern',
+    pattern: 'solid',
+    fgColor: { argb: FAGOR_RED }
+  };
+  flangeTitleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+  worksheet.getRow(currentRow).height = 20;
+  
+  currentRow++;
+  currentRow += 2; // Espacio antes de las imágenes
+  
+  // Guardar la fila donde empezarán las imágenes de bridas
+  const flangeImageStartRow = currentRow;
+  
+  // Agregar imágenes de bridas lado a lado
+  try {
+    // Imagen FXM Flange (izquierda)
+    const fxmFlangeResponse = await fetch('/flange-fxm.png');
+    const fxmFlangeBlob = await fxmFlangeResponse.blob();
+    const fxmFlangeArrayBuffer = await fxmFlangeBlob.arrayBuffer();
+    
+    const fxmFlangeId = workbook.addImage({
+      buffer: fxmFlangeArrayBuffer,
+      extension: 'png',
+    });
+    
+    worksheet.addImage(fxmFlangeId, {
+      tl: { col: 0, row: flangeImageStartRow - 1 },
+      ext: { width: 150, height: 150 }
+    });
+    
+    // Imagen FKM Flange (derecha)
+    const fkmFlangeResponse = await fetch('/flange-fkm.png');
+    const fkmFlangeBlob = await fkmFlangeResponse.blob();
+    const fkmFlangeArrayBuffer = await fkmFlangeBlob.arrayBuffer();
+    
+    const fkmFlangeId = workbook.addImage({
+      buffer: fkmFlangeArrayBuffer,
+      extension: 'png',
+    });
+    
+    worksheet.addImage(fkmFlangeId, {
+      tl: { col: 2.5, row: flangeImageStartRow - 1 },
+      ext: { width: 150, height: 150 }
+    });
+  } catch (error) {
+    console.error('Error loading flange images:', error);
+  }
+  
+  // Avanzar filas para dejar espacio a las imágenes (aprox 10 filas para 150px de altura)
+  currentRow += 10;
+  
+  // Encabezados de tabla de bridas
+  const flangeHeaders = worksheet.getRow(currentRow);
+  const flangeHeaderLabels = [
+    language === 'es' ? 'Dimensión de Brida' : 'Flange Dimension',
+    'FXM',
+    'FKM',
+    language === 'es' ? 'Diferencia' : 'Difference',
+    language === 'es' ? 'Estado' : 'Status'
+  ];
+  
+  flangeHeaderLabels.forEach((header, index) => {
+    const cell = flangeHeaders.getCell(index + 1);
+    cell.value = header;
+    cell.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+    cell.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: FAGOR_RED }
+    };
+    cell.alignment = { horizontal: 'center', vertical: 'middle' };
+    cell.border = {
+      top: { style: 'thin' },
+      left: { style: 'thin' },
+      bottom: { style: 'thin' },
+      right: { style: 'thin' }
+    };
+  });
+  
+  currentRow++;
+  
+  // Datos de bridas
+  const flangeData = [
+    [
+      language === 'es' ? 'Diámetro de Brida (D)' : 'Flange Diameter (D)',
+      `${comparison.fxm.dimensions.d} mm`,
+      `${comparison.fkm.dimensions.d} mm`,
+      `${comparison.differences.dimensions.d.diff} mm`,
+      comparison.differences.dimensions.d.diff === 0 ? (language === 'es' ? 'Compatible' : 'Compatible') : (language === 'es' ? 'Diferente' : 'Different')
+    ],
+    [
+      language === 'es' ? 'Altura de Eje (E)' : 'Shaft Height (E)',
+      `${comparison.fxm.dimensions.e} mm`,
+      `${comparison.fkm.dimensions.e} mm`,
+      `${comparison.differences.dimensions.e.diff} mm`,
+      comparison.differences.dimensions.e.diff === 0 ? (language === 'es' ? 'Compatible' : 'Compatible') : (language === 'es' ? 'Diferente' : 'Different')
+    ],
+    [
+      language === 'es' ? 'Diámetro de Eje (N)' : 'Shaft Diameter (N)',
+      `${comparison.fxm.dimensions.n} mm`,
+      `${comparison.fkm.dimensions.n} mm`,
+      `${comparison.differences.dimensions.n.diff} mm`,
+      comparison.differences.dimensions.n.diff === 0 ? (language === 'es' ? 'Compatible' : 'Compatible') : (language === 'es' ? 'Diferente' : 'Different')
+    ],
+    [
+      language === 'es' ? 'Longitud de Montaje (M)' : 'Mounting Length (M)',
+      `${comparison.fxm.dimensions.m} mm`,
+      `${comparison.fkm.dimensions.m} mm`,
+      `${comparison.differences.dimensions.m.diff} mm`,
+      comparison.differences.dimensions.m.diff === 0 ? (language === 'es' ? 'Compatible' : 'Compatible') : (language === 'es' ? 'Diferente' : 'Different')
+    ]
+  ];
+  
+  flangeData.forEach((rowData) => {
+    const row = worksheet.getRow(currentRow);
+    rowData.forEach((value, index) => {
+      const cell = row.getCell(index + 1);
+      cell.value = value;
+      cell.font = { name: 'Arial', size: 9 };
+      cell.alignment = { horizontal: index === 0 ? 'left' : 'center', vertical: 'middle' };
+      cell.border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' }
+      };
+      
+      // Colorear estado según compatibilidad
+      if (index === 4) {
+        if (value === 'Compatible' || value === 'Compatible') {
+          cell.font = { name: 'Arial', size: 9, bold: true, color: { argb: 'FF008000' } };
+        } else {
+          cell.font = { name: 'Arial', size: 9, bold: true, color: { argb: 'FFFF8C00' } };
+        }
+      }
+    });
+    currentRow++;
+  });
+  
+  // Nota de compatibilidad de brida
+  currentRow++;
+  const allDimensionsMatch = 
+    comparison.differences.dimensions.d.diff === 0 &&
+    comparison.differences.dimensions.e.diff === 0 &&
+    comparison.differences.dimensions.n.diff === 0 &&
+    comparison.differences.dimensions.m.diff === 0;
+  
+  worksheet.mergeCells(`A${currentRow}:E${currentRow}`);
+  const compatibilityCell = worksheet.getCell(`A${currentRow}`);
+  compatibilityCell.value = allDimensionsMatch
+    ? (language === 'es' ? '✓ Brida 100% Compatible - Montaje Directo' : '✓ 100% Compatible Flange - Direct Mount')
+    : (language === 'es' ? '⚠ Brida Diferente - Puede Requerir Adaptador' : '⚠ Different Flange - May Require Adapter');
+  compatibilityCell.font = { 
+    name: 'Arial', 
+    size: 10, 
+    bold: true, 
+    color: { argb: allDimensionsMatch ? 'FF008000' : 'FFFF8C00' } 
+  };
+  compatibilityCell.alignment = { horizontal: 'center', vertical: 'middle' };
+  worksheet.getRow(currentRow).height = 25;
+  
+  currentRow += 2;
+  
   // Sección: Recomendaciones de Encoders
   worksheet.mergeCells(`A${currentRow}:E${currentRow}`);
   const encoderTitleCell = worksheet.getCell(`A${currentRow}`);
@@ -445,6 +614,143 @@ export async function exportToExcel(comparison: ComparisonResult, language: stri
   footerCell.value = '© 2024 FAGOR Automation. All rights reserved. | Open to your world';
   footerCell.font = { name: 'Arial', size: 9, italic: true, color: { argb: 'FF666666' } };
   footerCell.alignment = { horizontal: 'center', vertical: 'middle' };
+  
+  // ============= NUEVA HOJA: GUÍA DE NOMENCLATURA =============
+  const nomenclatureSheet = workbook.addWorksheet(language === 'es' ? 'Guía de Nomenclatura' : 'Nomenclature Guide');
+  
+  // Configurar anchos de columnas
+  nomenclatureSheet.columns = [
+    { width: 20 },
+    { width: 30 },
+    { width: 60 }
+  ];
+  
+  let nomRow = 1;
+  
+  // Título
+  nomenclatureSheet.mergeCells(`A${nomRow}:C${nomRow}`);
+  const nomTitleCell = nomenclatureSheet.getCell(`A${nomRow}`);
+  nomTitleCell.value = language === 'es' ? 'Guía de Nomenclatura de Motores FAGOR' : 'FAGOR Motor Nomenclature Guide';
+  nomTitleCell.font = { name: 'Arial', size: 16, bold: true, color: { argb: FAGOR_RED } };
+  nomTitleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+  nomenclatureSheet.getRow(nomRow).height = 30;
+  
+  nomRow += 2;
+  
+  // Introducción
+  nomenclatureSheet.mergeCells(`A${nomRow}:C${nomRow}`);
+  const introCell = nomenclatureSheet.getCell(`A${nomRow}`);
+  introCell.value = language === 'es'
+    ? 'Cada motor FAGOR tiene un código de modelo que describe sus características técnicas. Entender este código le ayudará a seleccionar el motor correcto para su aplicación.'
+    : 'Each FAGOR motor has a model code that describes its technical characteristics. Understanding this code will help you select the correct motor for your application.';
+  introCell.font = { name: 'Arial', size: 10 };
+  introCell.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
+  nomenclatureSheet.getRow(nomRow).height = 40;
+  
+  nomRow += 2;
+  
+  // Ejemplo
+  nomenclatureSheet.mergeCells(`A${nomRow}:C${nomRow}`);
+  const exampleCell = nomenclatureSheet.getCell(`A${nomRow}`);
+  exampleCell.value = language === 'es' ? 'Ejemplo: FXM 75.30A.E1.010' : 'Example: FXM 75.30A.E1.010';
+  exampleCell.font = { name: 'Arial', size: 12, bold: true, color: { argb: FAGOR_RED } };
+  exampleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+  nomenclatureSheet.getRow(nomRow).height = 25;
+  
+  nomRow += 2;
+  
+  // Encabezados de tabla
+  const nomHeaders = nomenclatureSheet.getRow(nomRow);
+  const nomHeaderLabels = [
+    language === 'es' ? 'Código' : 'Code',
+    language === 'es' ? 'Descripción' : 'Description',
+    language === 'es' ? 'Valores Posibles' : 'Possible Values'
+  ];
+  
+  nomHeaderLabels.forEach((header, index) => {
+    const cell = nomHeaders.getCell(index + 1);
+    cell.value = header;
+    cell.font = { name: 'Arial', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+    cell.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: FAGOR_RED }
+    };
+    cell.alignment = { horizontal: 'center', vertical: 'middle' };
+    cell.border = {
+      top: { style: 'thin' },
+      left: { style: 'thin' },
+      bottom: { style: 'thin' },
+      right: { style: 'thin' }
+    };
+  });
+  nomenclatureSheet.getRow(nomRow).height = 25;
+  
+  nomRow++;
+  
+  // Datos de nomenclatura
+  const nomenclatureData = [
+    [
+      'FXM / FKM',
+      language === 'es' ? 'Serie del Motor' : 'Motor Series',
+      language === 'es' ? 'FXM = Serie antigua\nFKM = Serie nueva' : 'FXM = Old series\nFKM = New series'
+    ],
+    [
+      '75',
+      language === 'es' ? 'Tamaño de Brida' : 'Flange Size',
+      language === 'es' ? 'Diámetro de brida en mm\n(11, 14, 21, 22, 31, 32, 41, 42, 62, 63, 64, 66, 75, 78, 82, 83, 84, 85, 94, 95, 96)' : 'Flange diameter in mm\n(11, 14, 21, 22, 31, 32, 41, 42, 62, 63, 64, 66, 75, 78, 82, 83, 84, 85, 94, 95, 96)'
+    ],
+    [
+      '30',
+      language === 'es' ? 'Velocidad Nominal' : 'Rated Speed',
+      language === 'es' ? '20 = 2000 rpm\n30 = 3000 rpm\n40 = 4000 rpm\n45 = 4500 rpm\n50 = 5000 rpm\n60 = 6000 rpm' : '20 = 2000 rpm\n30 = 3000 rpm\n40 = 4000 rpm\n45 = 4500 rpm\n50 = 5000 rpm\n60 = 6000 rpm'
+    ],
+    [
+      'A',
+      language === 'es' ? 'Tipo de Devanado' : 'Winding Type',
+      language === 'es' ? 'A = Devanado estándar\nB = Devanado especial\nC = Devanado de alta velocidad' : 'A = Standard winding\nB = Special winding\nC = High-speed winding'
+    ],
+    [
+      'E1',
+      language === 'es' ? 'Tipo de Encoder' : 'Encoder Type',
+      language === 'es' ? 'E1 = Incremental 1024 ppt\nE2 = Incremental 2048 ppt\nE3 = Incremental 128 ppt\nE4 = Absoluto\nxx = Sin encoder' : 'E1 = Incremental 1024 ppt\nE2 = Incremental 2048 ppt\nE3 = Incremental 128 ppt\nE4 = Absolute\nxx = No encoder'
+    ],
+    [
+      '010',
+      language === 'es' ? 'Configuración' : 'Configuration',
+      language === 'es' ? 'x00 = Configuración estándar\nx01 = Par alto\nx10 = Eje largo\nx11 = Par alto + Eje largo\n200.3 = Configuración especial' : 'x00 = Standard configuration\nx01 = High torque\nx10 = Long shaft\nx11 = High torque + Long shaft\n200.3 = Special configuration'
+    ]
+  ];
+  
+  nomenclatureData.forEach((rowData) => {
+    const row = nomenclatureSheet.getRow(nomRow);
+    rowData.forEach((value, index) => {
+      const cell = row.getCell(index + 1);
+      cell.value = value;
+      cell.font = { name: 'Arial', size: 10, bold: index === 0 };
+      cell.alignment = { horizontal: index === 0 ? 'center' : 'left', vertical: 'top', wrapText: true };
+      cell.border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' }
+      };
+    });
+    row.height = 60; // Altura mayor para permitir múltiples líneas
+    nomRow++;
+  });
+  
+  nomRow += 2;
+  
+  // Nota importante
+  nomenclatureSheet.mergeCells(`A${nomRow}:C${nomRow}`);
+  const nomNoteCell = nomenclatureSheet.getCell(`A${nomRow}`);
+  nomNoteCell.value = language === 'es'
+    ? 'Nota Importante: Al convertir de FXM a FKM, verifique siempre las dimensiones mecánicas de la brida y las especificaciones eléctricas. Algunos modelos pueden requerir adaptadores mecánicos o cambios en el cableado. Consulte con el departamento técnico de FAGOR para aplicaciones críticas.'
+    : 'Important Note: When converting from FXM to FKM, always verify the mechanical flange dimensions and electrical specifications. Some models may require mechanical adapters or wiring changes. Consult with FAGOR technical department for critical applications.';
+  nomNoteCell.font = { name: 'Arial', size: 10, bold: true, color: { argb: FAGOR_RED } };
+  nomNoteCell.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
+  nomenclatureSheet.getRow(nomRow).height = 60;
   
   // Generar y descargar archivo
   const buffer = await workbook.xlsx.writeBuffer();

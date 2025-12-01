@@ -230,6 +230,126 @@ export async function exportToPDF(comparison: ComparisonResult, language: string
   
   yPos = (doc as any).lastAutoTable.finalY + 10;
   
+  // ============= SECCIÓN: DIFERENCIAS MECÁNICAS DE BRIDAS =============
+  
+  // Verificar si necesitamos nueva página
+  if (yPos > pageHeight - 100) {
+    doc.addPage();
+    yPos = 20;
+  }
+  
+  // Título de sección de bridas
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(FAGOR_RED[0], FAGOR_RED[1], FAGOR_RED[2]);
+  doc.text(language === 'es' ? 'Diferencias Mecánicas de Bridas' : 'Flange Mechanical Differences', marginLeft, yPos);
+  
+  yPos += 10;
+  
+  // Agregar imágenes de bridas lado a lado
+  const flangeImageWidth = 60;
+  const flangeImageHeight = 60;
+  const imageSpacing = 10;
+  
+  try {
+    // Imagen FXM Flange (izquierda)
+    doc.addImage('/flange-fxm.png', 'PNG', marginLeft, yPos, flangeImageWidth, flangeImageHeight);
+    
+    // Imagen FKM Flange (derecha)
+    doc.addImage('/flange-fkm.png', 'PNG', marginLeft + flangeImageWidth + imageSpacing, yPos, flangeImageWidth, flangeImageHeight);
+  } catch (e) {
+    console.warn('No se pudieron cargar imágenes de bridas:', e);
+  }
+  
+  yPos += flangeImageHeight + 10;
+  
+  // Tabla de diferencias de bridas
+  const flangeDimensionsData = [
+    [
+      language === 'es' ? 'Diámetro de Brida (D)' : 'Flange Diameter (D)',
+      `${comparison.fxm.dimensions.d} mm`,
+      `${comparison.fkm.dimensions.d} mm`,
+      `${comparison.differences.dimensions.d.diff} mm`,
+      comparison.differences.dimensions.d.diff === 0 ? (language === 'es' ? 'Compatible' : 'Compatible') : (language === 'es' ? 'Diferente' : 'Different')
+    ],
+    [
+      language === 'es' ? 'Altura de Eje (E)' : 'Shaft Height (E)',
+      `${comparison.fxm.dimensions.e} mm`,
+      `${comparison.fkm.dimensions.e} mm`,
+      `${comparison.differences.dimensions.e.diff} mm`,
+      comparison.differences.dimensions.e.diff === 0 ? (language === 'es' ? 'Compatible' : 'Compatible') : (language === 'es' ? 'Diferente' : 'Different')
+    ],
+    [
+      language === 'es' ? 'Diámetro de Eje (N)' : 'Shaft Diameter (N)',
+      `${comparison.fxm.dimensions.n} mm`,
+      `${comparison.fkm.dimensions.n} mm`,
+      `${comparison.differences.dimensions.n.diff} mm`,
+      comparison.differences.dimensions.n.diff === 0 ? (language === 'es' ? 'Compatible' : 'Compatible') : (language === 'es' ? 'Diferente' : 'Different')
+    ],
+    [
+      language === 'es' ? 'Longitud de Montaje (M)' : 'Mounting Length (M)',
+      `${comparison.fxm.dimensions.m} mm`,
+      `${comparison.fkm.dimensions.m} mm`,
+      `${comparison.differences.dimensions.m.diff} mm`,
+      comparison.differences.dimensions.m.diff === 0 ? (language === 'es' ? 'Compatible' : 'Compatible') : (language === 'es' ? 'Diferente' : 'Different')
+    ]
+  ];
+  
+  autoTable(doc, {
+    startY: yPos,
+    head: [[
+      language === 'es' ? 'Dimensión de Brida' : 'Flange Dimension',
+      'FXM',
+      'FKM',
+      language === 'es' ? 'Diferencia' : 'Difference',
+      language === 'es' ? 'Estado' : 'Status'
+    ]],
+    body: flangeDimensionsData,
+    theme: 'grid',
+    headStyles: {
+      fillColor: FAGOR_RED,
+      textColor: [255, 255, 255],
+      fontStyle: 'bold',
+      fontSize: 9,
+      halign: 'center'
+    },
+    bodyStyles: {
+      fontSize: 8,
+      cellPadding: 3
+    },
+    columnStyles: {
+      0: { cellWidth: 60 },
+      1: { halign: 'center', cellWidth: 25 },
+      2: { halign: 'center', cellWidth: 25 },
+      3: { halign: 'center', cellWidth: 25 },
+      4: { halign: 'center', cellWidth: 30 }
+    },
+    margin: { left: marginLeft, right: marginRight },
+  });
+  
+  yPos = (doc as any).lastAutoTable.finalY + 10;
+  
+  // Nota de compatibilidad de brida
+  const allDimensionsMatch = 
+    comparison.differences.dimensions.d.diff === 0 &&
+    comparison.differences.dimensions.e.diff === 0 &&
+    comparison.differences.dimensions.n.diff === 0 &&
+    comparison.differences.dimensions.m.diff === 0;
+  
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  if (allDimensionsMatch) {
+    doc.setTextColor(0, 128, 0);
+  } else {
+    doc.setTextColor(255, 140, 0);
+  }
+  const compatibilityText = allDimensionsMatch
+    ? (language === 'es' ? '✓ Brida 100% Compatible - Montaje Directo' : '✓ 100% Compatible Flange - Direct Mount')
+    : (language === 'es' ? '⚠ Brida Diferente - Puede Requerir Adaptador' : '⚠ Different Flange - May Require Adapter');
+  doc.text(compatibilityText, marginLeft, yPos);
+  
+  yPos += 10;
+  
   // ============= PÁGINA 2: RECOMENDACIONES CON IMÁGENES =============
   doc.addPage();
   yPos = 20;
@@ -352,6 +472,115 @@ export async function exportToPDF(comparison: ComparisonResult, language: string
   const connectorNote = doc.splitTextToSize(connectorRec?.notes || '', contentWidth - 5);
   doc.text(connectorNote, marginLeft, yPos);
   yPos += connectorNote.length * 4;
+  
+  // ============= PÁGINA 3: GUÍA DE NOMENCLATURA DE MOTORES =============
+  doc.addPage();
+  yPos = 20;
+  
+  // Título de página 3
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(FAGOR_RED[0], FAGOR_RED[1], FAGOR_RED[2]);
+  doc.text(language === 'es' ? 'Guía de Nomenclatura de Motores' : 'Motor Nomenclature Guide', marginLeft, yPos);
+  
+  yPos += 12;
+  
+  // Introducción
+  doc.setFontSize(9);
+  doc.setTextColor(0, 0, 0);
+  doc.setFont('helvetica', 'normal');
+  const introText = language === 'es'
+    ? 'Cada motor FAGOR tiene un código de modelo que describe sus características técnicas. Entender este código le ayudará a seleccionar el motor correcto para su aplicación.'
+    : 'Each FAGOR motor has a model code that describes its technical characteristics. Understanding this code will help you select the correct motor for your application.';
+  const introLines = doc.splitTextToSize(introText, contentWidth);
+  doc.text(introLines, marginLeft, yPos);
+  yPos += introLines.length * 5 + 10;
+  
+  // Ejemplo de nomenclatura
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(FAGOR_RED[0], FAGOR_RED[1], FAGOR_RED[2]);
+  doc.text(language === 'es' ? 'Ejemplo: FXM 75.30A.E1.010' : 'Example: FXM 75.30A.E1.010', marginLeft, yPos);
+  yPos += 10;
+  
+  // Tabla de nomenclatura
+  const nomenclatureData = [
+    [
+      'FXM / FKM',
+      language === 'es' ? 'Serie del Motor' : 'Motor Series',
+      language === 'es' ? 'FXM = Serie antigua\nFKM = Serie nueva' : 'FXM = Old series\nFKM = New series'
+    ],
+    [
+      '75',
+      language === 'es' ? 'Tamaño de Brida' : 'Flange Size',
+      language === 'es' ? 'Diámetro de brida en mm\n(11, 14, 21, 22, 31, 32, 41, 42, 62, 63, 64, 66, 75, 78, 82, 83, 84, 85, 94, 95, 96)' : 'Flange diameter in mm\n(11, 14, 21, 22, 31, 32, 41, 42, 62, 63, 64, 66, 75, 78, 82, 83, 84, 85, 94, 95, 96)'
+    ],
+    [
+      '30',
+      language === 'es' ? 'Velocidad Nominal' : 'Rated Speed',
+      language === 'es' ? '20 = 2000 rpm\n30 = 3000 rpm\n40 = 4000 rpm\n45 = 4500 rpm\n50 = 5000 rpm\n60 = 6000 rpm' : '20 = 2000 rpm\n30 = 3000 rpm\n40 = 4000 rpm\n45 = 4500 rpm\n50 = 5000 rpm\n60 = 6000 rpm'
+    ],
+    [
+      'A',
+      language === 'es' ? 'Tipo de Devanado' : 'Winding Type',
+      language === 'es' ? 'A = Devanado estándar\nB = Devanado especial\nC = Devanado de alta velocidad' : 'A = Standard winding\nB = Special winding\nC = High-speed winding'
+    ],
+    [
+      'E1',
+      language === 'es' ? 'Tipo de Encoder' : 'Encoder Type',
+      language === 'es' ? 'E1 = Incremental 1024 ppt\nE2 = Incremental 2048 ppt\nE3 = Incremental 128 ppt\nE4 = Absoluto\nxx = Sin encoder' : 'E1 = Incremental 1024 ppt\nE2 = Incremental 2048 ppt\nE3 = Incremental 128 ppt\nE4 = Absolute\nxx = No encoder'
+    ],
+    [
+      '010',
+      language === 'es' ? 'Configuración' : 'Configuration',
+      language === 'es' ? 'x00 = Configuración estándar\nx01 = Par alto\nx10 = Eje largo\nx11 = Par alto + Eje largo\n200.3 = Configuración especial' : 'x00 = Standard configuration\nx01 = High torque\nx10 = Long shaft\nx11 = High torque + Long shaft\n200.3 = Special configuration'
+    ]
+  ];
+  
+  autoTable(doc, {
+    startY: yPos,
+    head: [[
+      language === 'es' ? 'Código' : 'Code',
+      language === 'es' ? 'Descripción' : 'Description',
+      language === 'es' ? 'Valores Posibles' : 'Possible Values'
+    ]],
+    body: nomenclatureData,
+    theme: 'grid',
+    headStyles: {
+      fillColor: FAGOR_RED,
+      textColor: [255, 255, 255],
+      fontStyle: 'bold',
+      fontSize: 9,
+      halign: 'center'
+    },
+    bodyStyles: {
+      fontSize: 8,
+      cellPadding: 4
+    },
+    columnStyles: {
+      0: { cellWidth: 30, halign: 'center', fontStyle: 'bold' },
+      1: { cellWidth: 40 },
+      2: { cellWidth: 95 }
+    },
+    margin: { left: marginLeft, right: marginRight },
+  });
+  
+  yPos = (doc as any).lastAutoTable.finalY + 10;
+  
+  // Nota importante
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(FAGOR_RED[0], FAGOR_RED[1], FAGOR_RED[2]);
+  doc.text(language === 'es' ? 'Nota Importante:' : 'Important Note:', marginLeft, yPos);
+  yPos += 6;
+  
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(0, 0, 0);
+  const noteText = language === 'es'
+    ? 'Al convertir de FXM a FKM, verifique siempre las dimensiones mecánicas de la brida y las especificaciones eléctricas. Algunos modelos pueden requerir adaptadores mecánicos o cambios en el cableado. Consulte con el departamento técnico de FAGOR para aplicaciones críticas.'
+    : 'When converting from FXM to FKM, always verify the mechanical flange dimensions and electrical specifications. Some models may require mechanical adapters or wiring changes. Consult with FAGOR technical department for critical applications.';
+  const noteLines = doc.splitTextToSize(noteText, contentWidth);
+  doc.text(noteLines, marginLeft, yPos);
   
   // Footer en todas las páginas
   const totalPages = doc.getNumberOfPages();
