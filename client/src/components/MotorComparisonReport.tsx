@@ -261,6 +261,125 @@ export default function MotorComparisonReport({ comparison, conversionDirection 
             </table>
           </div>
         </div>
+        
+        {/* Diferencias Mecánicas de Bridas */}
+        <div className="mt-6">
+          <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+            <AlertCircle className="h-5 w-5 text-primary" />
+            {t('flange.title') || 'Diferencias Mecánicas de Bridas / Flange Mechanical Differences'}
+          </h3>
+          <div className="bg-gradient-to-br from-slate-50 to-slate-100 p-6 rounded-lg border-2 border-slate-200">
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Dimensiones de Brida */}
+              <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-200">
+                <h4 className="font-bold text-primary mb-3">Flange Dimensions / Dimensiones de Brida</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between items-center py-2 border-b border-slate-100">
+                    <span className="text-slate-600">Flange Diameter (D):</span>
+                    <span className="font-bold">{formatDiff(comparison.differences.dimensions.d.diff, t('unit.mm'))}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-slate-100">
+                    <span className="text-slate-600">Shaft Height (E):</span>
+                    <span className="font-bold">{formatDiff(comparison.differences.dimensions.e.diff, t('unit.mm'))}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-slate-100">
+                    <span className="text-slate-600">Mounting Holes (M):</span>
+                    <span className="font-bold">{formatDiff(comparison.differences.dimensions.m.diff, t('unit.mm'))}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2">
+                    <span className="text-slate-600">Hole Centers (N):</span>
+                    <span className="font-bold">{formatDiff(comparison.differences.dimensions.n.diff, t('unit.mm'))}</span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Compatibilidad de Brida */}
+              <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-200">
+                <h4 className="font-bold text-primary mb-3">Flange Compatibility / Compatibilidad de Brida</h4>
+                {(() => {
+                  const dDiff = comparison.differences.dimensions.d.diff || 0;
+                  const eDiff = comparison.differences.dimensions.e.diff || 0;
+                  const mDiff = comparison.differences.dimensions.m.diff || 0;
+                  const nDiff = comparison.differences.dimensions.n.diff || 0;
+                  const totalDiff = Math.abs(dDiff) + Math.abs(eDiff) + Math.abs(mDiff) + Math.abs(nDiff);
+                  const isFullyCompatible = totalDiff === 0;
+                  const isHighlyCompatible = totalDiff < 2;
+                  
+                  return (
+                    <div className="space-y-3">
+                      <div className={`p-3 rounded-lg border-2 ${
+                        isFullyCompatible 
+                          ? 'bg-green-50 border-green-500' 
+                          : isHighlyCompatible 
+                          ? 'bg-blue-50 border-blue-500'
+                          : 'bg-amber-50 border-amber-500'
+                      }`}>
+                        <div className="flex items-center gap-2 mb-2">
+                          <CheckCircle2 className={`h-5 w-5 ${
+                            isFullyCompatible 
+                              ? 'text-green-600' 
+                              : isHighlyCompatible 
+                              ? 'text-blue-600'
+                              : 'text-amber-600'
+                          }`} />
+                          <span className={`font-bold ${
+                            isFullyCompatible 
+                              ? 'text-green-900' 
+                              : isHighlyCompatible 
+                              ? 'text-blue-900'
+                              : 'text-amber-900'
+                          }`}>
+                            {isFullyCompatible 
+                              ? '100% Compatible' 
+                              : isHighlyCompatible 
+                              ? 'Highly Compatible / Altamente Compatible'
+                              : 'Requires Adapter / Requiere Adaptador'
+                            }
+                          </span>
+                        </div>
+                        <p className={`text-sm ${
+                          isFullyCompatible 
+                            ? 'text-green-800' 
+                            : isHighlyCompatible 
+                            ? 'text-blue-800'
+                            : 'text-amber-800'
+                        }`}>
+                          {isFullyCompatible 
+                            ? 'Las bridas son idénticas. Instalación directa sin modificaciones.'
+                            : isHighlyCompatible 
+                            ? `Diferencias menores (${totalDiff.toFixed(1)}mm total). Instalación directa posible con ajustes mínimos.`
+                            : `Diferencias significativas (${totalDiff.toFixed(1)}mm total). Se recomienda usar placa adaptadora.`
+                          }
+                        </p>
+                      </div>
+                      
+                      <div className="bg-slate-50 p-3 rounded border border-slate-200">
+                        <p className="text-xs text-slate-600 font-semibold mb-1">Installation Notes / Notas de Instalación:</p>
+                        <ul className="text-xs text-slate-700 space-y-1 list-disc list-inside">
+                          {Math.abs(dDiff) > 0 && (
+                            <li>Flange diameter difference: {Math.abs(dDiff).toFixed(2)}mm</li>
+                          )}
+                          {Math.abs(eDiff) > 0 && (
+                            <li>Shaft height difference: {Math.abs(eDiff).toFixed(2)}mm</li>
+                          )}
+                          {Math.abs(mDiff) > 0 && (
+                            <li>Mounting hole difference: {Math.abs(mDiff).toFixed(2)}mm</li>
+                          )}
+                          {Math.abs(nDiff) > 0 && (
+                            <li>Hole center distance difference: {Math.abs(nDiff).toFixed(2)}mm</li>
+                          )}
+                          {isFullyCompatible && (
+                            <li className="text-green-700 font-semibold">Perfect mechanical match - Direct replacement</li>
+                          )}
+                        </ul>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+          </div>
+        </div>
       </CardContent>
     </Card>
     

@@ -19,90 +19,141 @@ const encoderConversionMap: Record<string, { recommended: string[]; bestMatch: s
   }
 };
 
-const fkmConnectorsByFamily: Record<string, { recommended: string; alternatives: string[]; wireGauge: string; notes: string }> = {
-  'FKM22': {
-    recommended: 'MC-20/6 (84080060)',
-    alternatives: ['MPC-4x1.5'],
+// Conectores de poder correctos (MCxx/x format)
+// Basado en especificaciones técnicas FAGOR
+const fkmConnectorsByFamily: Record<string, { recommended: string; alternatives: string[]; wireGauge: string; cable: string; notes: string }> = {
+  'FKM21': {
+    recommended: 'MC-20/6',
+    alternatives: ['MC-23/6'],
     wireGauge: '1.5 mm²',
-    notes: 'Motor pequeño FKM22 - Reemplazo de FXM14. Requiere enchufe MC-20/6 (84080060), cable encoder EEC-SP-xx y cable alimentación MPC-4X1.5-xxM (longitud según cliente)'
+    cable: 'MPC-4x1.5',
+    notes: 'Motor pequeño FKM21. Conector MC-20/6, cable MPC-4x1.5-xxM'
+  },
+  'FKM22': {
+    recommended: 'MC-20/6',
+    alternatives: ['MC-23/6'],
+    wireGauge: '1.5 mm²',
+    cable: 'MPC-4x1.5',
+    notes: 'Motor pequeño FKM22 - Reemplazo de FXM14. Requiere conector MC-20/6 (84080060), cable encoder EEC-SP-xx y cable alimentación MPC-4x1.5-xxM (longitud según cliente)'
+  },
+  'FKM31': {
+    recommended: 'MC-23/6',
+    alternatives: ['MC-46/6'],
+    wireGauge: '2.5 mm²',
+    cable: 'MPC-4x2.5',
+    notes: 'Motor mediano FKM31. Conector MC-23/6, cable MPC-4x2.5-xxM'
+  },
+  'FKM32': {
+    recommended: 'MC-23/6',
+    alternatives: ['MC-46/6'],
+    wireGauge: '2.5 mm²',
+    cable: 'MPC-4x2.5',
+    notes: 'Motor mediano FKM32. Conector MC-23/6, cable MPC-4x2.5-xxM'
+  },
+  'FKM41': {
+    recommended: 'MC-46/6',
+    alternatives: ['MC-80/6'],
+    wireGauge: '4 mm²',
+    cable: 'MPC-4x4',
+    notes: 'Motor grande FKM41. Conector MC-46/6, cable MPC-4x4-xxM'
+  },
+  'FKM42': {
+    recommended: 'MC-46/6',
+    alternatives: ['MC-80/6'],
+    wireGauge: '4 mm²',
+    cable: 'MPC-4x4',
+    notes: 'Motor grande FKM42. Conector MC-46/6, cable MPC-4x4-xxM'
   },
   'FKM43': {
-    recommended: 'MPC-4x1.5',
-    alternatives: ['MPC-4x2.5'],
+    recommended: 'MC-23/6',
+    alternatives: ['MC-46/6'],
     wireGauge: '1.5 - 2.5 mm²',
-    notes: 'Motor compacto de baja potencia'
+    cable: 'MPC-4x1.5',
+    notes: 'Motor compacto FKM43. Conector MC-23/6, cable MPC-4x1.5-xxM'
   },
   'FKM44': {
-    recommended: 'MPC-4x1.5',
-    alternatives: ['MPC-4x2.5'],
+    recommended: 'MC-23/6',
+    alternatives: ['MC-46/6'],
     wireGauge: '1.5 - 2.5 mm²',
-    notes: 'Motor compacto de baja potencia'
+    cable: 'MPC-4x1.5',
+    notes: 'Motor compacto FKM44. Conector MC-23/6, cable MPC-4x1.5-xxM'
   },
   'FKM62': {
-    recommended: 'MPC-4x2.5',
-    alternatives: ['MPC-4x4'],
+    recommended: 'MC-46/6',
+    alternatives: ['MC-80/6'],
     wireGauge: '2.5 - 4 mm²',
-    notes: 'Motor mediano de potencia estándar'
+    cable: 'MPC-4x2.5',
+    notes: 'Motor mediano FKM62. Conector MC-46/6, cable MPC-4x2.5-xxM'
   },
   'FKM63': {
-    recommended: 'MPC-4x2.5',
-    alternatives: ['MPC-4x4'],
+    recommended: 'MC-46/6',
+    alternatives: ['MC-80/6'],
     wireGauge: '2.5 - 4 mm²',
-    notes: 'Motor mediano de potencia estándar'
+    cable: 'MPC-4x2.5',
+    notes: 'Motor mediano FKM63. Conector MC-46/6, cable MPC-4x2.5-xxM'
   },
   'FKM64': {
-    recommended: 'MPC-4x2.5',
-    alternatives: ['MPC-4x4'],
-    wireGauge: '2.5 - 4 mm²',
-    notes: 'Motor mediano de potencia estándar'
+    recommended: 'MC-46/6',
+    alternatives: ['MC-80/6'],
+    wireGauge: '4 mm²',
+    cable: 'MPC-4x4',
+    notes: 'Motor mediano FKM64. Conector MC-46/6, cable MPC-4x4-xxM'
   },
   'FKM66': {
-    recommended: 'MPC-4x4',
-    alternatives: ['MPC-4x6'],
+    recommended: 'MC-46/6',
+    alternatives: ['MC-80/6'],
     wireGauge: '4 - 6 mm²',
-    notes: 'Motor mediano-grande de potencia media-alta'
+    cable: 'MPC-4x4',
+    notes: 'Motor mediano-grande FKM66. Conector MC-46/6, cable MPC-4x4-xxM'
   },
   'FKM82': {
-    recommended: 'MPC-4x4',
-    alternatives: ['MPC-4x6', 'MPC-4x10'],
+    recommended: 'MC-80/6',
+    alternatives: ['MC-46/6'],
     wireGauge: '4 - 10 mm²',
-    notes: 'Motor grande de potencia media-alta'
+    cable: 'MPC-4x4',
+    notes: 'Motor grande FKM82. Conector MC-80/6, cable MPC-4x4-xxM o MPC-4x6-xxM'
   },
   'FKM83': {
-    recommended: 'MPC-4x6',
-    alternatives: ['MPC-4x10', 'MPC-4x16'],
+    recommended: 'MC-80/6',
+    alternatives: [],
     wireGauge: '6 - 16 mm²',
-    notes: 'Motor grande de alta potencia'
+    cable: 'MPC-4x6',
+    notes: 'Motor grande FKM83. Conector MC-80/6, cable MPC-4x6-xxM o MPC-4x10-xxM'
   },
   'FKM84': {
-    recommended: 'MPC-4x10',
-    alternatives: ['MPC-4x16'],
+    recommended: 'MC-80/6',
+    alternatives: [],
     wireGauge: '10 - 16 mm²',
-    notes: 'Motor grande de muy alta potencia'
+    cable: 'MPC-4x10',
+    notes: 'Motor grande FKM84. Conector MC-80/6, cable MPC-4x10-xxM o MPC-4x16-xxM'
   },
   'FKM85': {
-    recommended: 'MPC-4x10',
-    alternatives: ['MPC-4x16'],
+    recommended: 'MC-80/6',
+    alternatives: [],
     wireGauge: '10 - 16 mm²',
-    notes: 'Motor grande de muy alta potencia'
+    cable: 'MPC-4x10',
+    notes: 'Motor grande FKM85. Conector MC-80/6, cable MPC-4x10-xxM o MPC-4x16-xxM'
   },
   'FKM94': {
-    recommended: 'MPC-4x16',
-    alternatives: ['MPC-4x25'],
+    recommended: 'MC-80/6',
+    alternatives: [],
     wireGauge: '16 - 25 mm²',
-    notes: 'Motor extra grande de muy alta potencia'
+    cable: 'MPC-4x16',
+    notes: 'Motor extra grande FKM94. Conector MC-80/6, cable MPC-4x16-xxM o MPC-4x25-xxM'
   },
   'FKM95': {
-    recommended: 'MPC-4x16',
-    alternatives: ['MPC-4x25'],
+    recommended: 'MC-80/6',
+    alternatives: [],
     wireGauge: '16 - 25 mm²',
-    notes: 'Motor extra grande de muy alta potencia'
+    cable: 'MPC-4x16',
+    notes: 'Motor extra grande FKM95. Conector MC-80/6, cable MPC-4x16-xxM o MPC-4x25-xxM'
   },
   'FKM96': {
-    recommended: 'MPC-4x25',
+    recommended: 'MC-80/6',
     alternatives: [],
     wireGauge: '25 mm²',
-    notes: 'Motor extra grande de potencia industrial máxima'
+    cable: 'MPC-4x25',
+    notes: 'Motor extra grande FKM96. Conector MC-80/6, cable MPC-4x25-xxM'
   }
 };
 
@@ -110,7 +161,7 @@ const fkmConnectorsByFamily: Record<string, { recommended: string; alternatives:
 function detectFXMEncoder(fxmModel: string): string {
   // Los encoders están en la posición del modelo: FXM##.##X.YY.ZZZ
   // Donde YY puede ser E1, A1, o I0
-  const match = fxmModel.match(/\.(E1|A1|I0)\./i);
+  const match = fxmModel.match(/\.(E1|E2|E3|A1|A2|A3|I0)\./i);
   if (match) {
     return match[1].toUpperCase();
   }
@@ -125,11 +176,12 @@ function detectFXMConnector(fxmModel: string): string {
   if (fxmModel.includes('MC 80')) return 'MC 80';
   
   // Por defecto, basado en el tamaño del motor
-  const sizeMatch = fxmModel.match(/FXM(\d+)/i);
+  const sizeMatch = fxmModel.match(/FXM\s*(\d+)/i);
   if (sizeMatch) {
     const size = parseInt(sizeMatch[1]);
     if (size >= 76) return 'MC 46';
-    return 'MC 23';
+    if (size >= 14) return 'MC 23';
+    return 'MC 20';
   }
   
   return 'MC 23';

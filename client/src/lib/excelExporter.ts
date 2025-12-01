@@ -14,12 +14,17 @@ export async function exportToExcel(comparison: ComparisonResult, language: stri
   
   // Configurar anchos de columnas
   worksheet.columns = [
-    { width: 30 },
+    { width: 28 },
+    { width: 35 },
+    { width: 35 },
     { width: 20 },
-    { width: 20 },
-    { width: 20 },
-    { width: 15 }
+    { width: 18 }
   ];
+  
+  // Configurar altura de las primeras filas para el logo
+  worksheet.getRow(1).height = 25;
+  worksheet.getRow(2).height = 25;
+  worksheet.getRow(3).height = 25;
   
   let currentRow = 1;
   
@@ -34,8 +39,11 @@ export async function exportToExcel(comparison: ComparisonResult, language: stri
       extension: 'jpeg',
     });
     
-    // Insertar logo en la esquina superior izquierda (A1:C3)
-    worksheet.addImage(logoId, 'A1:C3');
+    // Insertar logo en la esquina superior izquierda (A1:B2) - tamaño más pequeño y profesional
+    worksheet.addImage(logoId, {
+      tl: { col: 0, row: 0 },
+      ext: { width: 180, height: 60 }
+    });
   } catch (error) {
     console.error('Error loading logo:', error);
   }
@@ -317,6 +325,12 @@ export async function exportToExcel(comparison: ComparisonResult, language: stri
   
   currentRow++;
   
+  // Agregar 2 filas vacías de separación antes de la imagen
+  currentRow += 2;
+  
+  // Guardar la fila donde empezará la imagen del encoder
+  const encoderImageStartRow = currentRow;
+  
   // Agregar imagen del encoder
   try {
     const encoderImgResponse = await fetch('/encoder-industrial.png');
@@ -328,10 +342,10 @@ export async function exportToExcel(comparison: ComparisonResult, language: stri
       extension: 'png',
     });
     
-    // Insertar imagen del encoder en la columna D-E
+    // Insertar imagen del encoder en la columna D-E con suficiente espacio
     worksheet.addImage(encoderImgId, {
-      tl: { col: 3.2, row: currentRow - 0.5 },
-      ext: { width: 150, height: 150 }
+      tl: { col: 3.5, row: encoderImageStartRow - 1 },
+      ext: { width: 120, height: 120 }
     });
   } catch (error) {
     console.error('Error loading encoder image:', error);
@@ -345,7 +359,7 @@ export async function exportToExcel(comparison: ComparisonResult, language: stri
     [language === 'es' ? 'Notas:' : 'Notes:', encoderRec?.notes || ''],
   ];
   
-  encoderDataRows.forEach(([label, value]) => {
+  encoderDataRows.forEach(([label, value], index) => {
     const row = worksheet.getRow(currentRow);
     row.getCell(1).value = label;
     row.getCell(1).font = { name: 'Arial', size: 10, bold: true };
@@ -353,7 +367,8 @@ export async function exportToExcel(comparison: ComparisonResult, language: stri
     row.getCell(2).value = value;
     row.getCell(2).font = { name: 'Arial', size: 9 };
     row.getCell(2).alignment = { horizontal: 'left', vertical: 'top', wrapText: true };
-    row.height = 20;
+    // Altura mayor para la fila de Notas (index 3)
+    row.height = index === 3 ? 60 : 22;
     currentRow++;
   });
   
@@ -374,6 +389,12 @@ export async function exportToExcel(comparison: ComparisonResult, language: stri
   
   currentRow++;
   
+  // Agregar 2 filas vacías de separación antes de la imagen
+  currentRow += 2;
+  
+  // Guardar la fila donde empezará la imagen del conector
+  const connectorImageStartRow = currentRow;
+  
   // Agregar imagen del conector
   try {
     const connectorImgResponse = await fetch('/connector-industrial.png');
@@ -385,10 +406,10 @@ export async function exportToExcel(comparison: ComparisonResult, language: stri
       extension: 'png',
     });
     
-    // Insertar imagen del conector en la columna D-E
+    // Insertar imagen del conector en la columna D-E con suficiente espacio
     worksheet.addImage(connectorImgId, {
-      tl: { col: 3.2, row: currentRow - 0.5 },
-      ext: { width: 150, height: 150 }
+      tl: { col: 3.5, row: connectorImageStartRow - 1 },
+      ext: { width: 120, height: 120 }
     });
   } catch (error) {
     console.error('Error loading connector image:', error);
@@ -403,7 +424,7 @@ export async function exportToExcel(comparison: ComparisonResult, language: stri
     [language === 'es' ? 'Notas:' : 'Notes:', connectorRec?.notes || ''],
   ];
   
-  connectorDataRows.forEach(([label, value]) => {
+  connectorDataRows.forEach(([label, value], index) => {
     const row = worksheet.getRow(currentRow);
     row.getCell(1).value = label;
     row.getCell(1).font = { name: 'Arial', size: 10, bold: true };
@@ -411,7 +432,8 @@ export async function exportToExcel(comparison: ComparisonResult, language: stri
     row.getCell(2).value = value;
     row.getCell(2).font = { name: 'Arial', size: 9 };
     row.getCell(2).alignment = { horizontal: 'left', vertical: 'top', wrapText: true };
-    row.height = 20;
+    // Altura mayor para la fila de Notas (index 4)
+    row.height = index === 4 ? 60 : 22;
     currentRow++;
   });
   
