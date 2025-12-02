@@ -192,19 +192,12 @@ export default function Home() {
       <header className="bg-white border-b-4 border-primary shadow-md">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            {/* Logo FAGOR */}
+            {/* Logo FAGOR - Izquierda */}
             <div className="flex items-center">
               <img src={APP_LOGO} alt="FAGOR Automation" className="h-16" />
             </div>
             
-            {/* Información de contacto */}
-            <div className="hidden md:flex flex-col items-end text-sm text-slate-700">
-              <p className="font-bold text-slate-900">FAGOR Automation USA</p>
-              <p>1755 Park Street, Naperville, IL 60563</p>
-              <p>Tel: +1 (630) 851-3050</p>
-            </div>
-            
-            {/* Selector de idioma */}
+            {/* Selector de idioma - Centro */}
             <div className="flex items-center gap-2">
               <Globe className="w-5 h-5 text-primary" />
               <Select value={language} onValueChange={(val) => setLanguage(val as Language)}>
@@ -222,6 +215,13 @@ export default function Home() {
                   <SelectItem value="pt">Português</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            
+            {/* Información de contacto - Derecha (texto rojo) */}
+            <div className="hidden md:flex flex-col items-end text-sm">
+              <p className="font-bold text-primary">FAGOR Automation USA</p>
+              <p className="text-primary">1755 Park Street, Naperville, IL 60563</p>
+              <p className="text-primary">Tel: +1 (630) 851-3050</p>
             </div>
           </div>
         </div>
