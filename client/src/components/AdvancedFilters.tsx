@@ -130,6 +130,31 @@ export default function AdvancedFilters({ onApplyFilters, onClearFilters, hasAct
               />
             </div>
           </div>
+
+          {/* Filtros de Longitud de Eje (N) */}
+          <div className="space-y-4">
+            <h4 className="font-bold text-slate-900">Shaft Length (N) Range</h4>
+            <div className="space-y-2">
+              <Label htmlFor="nMin">Minimum (mm)</Label>
+              <Input
+                id="nMin"
+                type="number"
+                placeholder="e.g., 100"
+                value={filters.nMin || ''}
+                onChange={(e) => setFilters({ ...filters, nMin: e.target.value ? parseFloat(e.target.value) : undefined })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="nMax">Maximum (mm)</Label>
+              <Input
+                id="nMax"
+                type="number"
+                placeholder="e.g., 250"
+                value={filters.nMax || ''}
+                onChange={(e) => setFilters({ ...filters, nMax: e.target.value ? parseFloat(e.target.value) : undefined })}
+              />
+            </div>
+          </div>
         </div>
         
         <div className="flex gap-4 mt-6">

@@ -132,7 +132,21 @@ export function findEquivalentFKM(fxmMotor: Motor, database: MotorDatabase): Mot
   }
   
   // Ordenar por similitud de Mo (más cercano primero)
+  // Priorizar motores con longitud de eje (N) coincidente
   return equivalents.sort((a, b) => {
+    // Verificar coincidencia de longitud de eje (N)
+    const targetN = fxmMotor.dimensions.n;
+    const aN = a.dimensions.n;
+    const bN = b.dimensions.n;
+    
+    const aMatchesN = targetN !== null && aN !== null && Math.abs(aN - targetN) < 1; // Tolerancia de 1mm
+    const bMatchesN = targetN !== null && bN !== null && Math.abs(bN - targetN) < 1;
+    
+    // Si uno coincide en N y el otro no, priorizar el que coincide
+    if (aMatchesN && !bMatchesN) return -1;
+    if (!aMatchesN && bMatchesN) return 1;
+    
+    // Si ambos coinciden o ninguno coincide, ordenar por similitud de Mo
     if (a.mo === null || b.mo === null || targetMo === null) return 0;
     const aDiff = Math.abs(a.mo - targetMo);
     const bDiff = Math.abs(b.mo - targetMo);
@@ -235,6 +249,8 @@ export interface AdvancedFilters {
   rpmMax?: number;
   lMax?: number;
   acMax?: number;
+  nMin?: number;
+  nMax?: number;
 }
 
 export function applyAdvancedFilters(motors: Motor[], filters: AdvancedFilters): Motor[] {
@@ -245,6 +261,8 @@ export function applyAdvancedFilters(motors: Motor[], filters: AdvancedFilters):
     if (filters.rpmMax !== undefined && motor.rpm !== null && motor.rpm > filters.rpmMax) return false;
     if (filters.lMax !== undefined && motor.dimensions.l && motor.dimensions.l > filters.lMax) return false;
     if (filters.acMax !== undefined && motor.dimensions.ac && motor.dimensions.ac > filters.acMax) return false;
+    if (filters.nMin !== undefined && motor.dimensions.n && motor.dimensions.n < filters.nMin) return false;
+    if (filters.nMax !== undefined && motor.dimensions.n && motor.dimensions.n > filters.nMax) return false;
     return true;
   });
 }
