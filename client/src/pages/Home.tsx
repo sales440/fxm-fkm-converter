@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Globe, Search, ArrowLeftRight, QrCode } from "lucide-react";
+import { Globe, Search, ArrowLeftRight, QrCode, X } from "lucide-react";
 import { APP_LOGO } from "@/const";
 import { useLanguage, Language } from "@/contexts/LanguageContext";
 import type { MotorDatabase, Motor, ComparisonResult } from "@/types/motor";
@@ -236,7 +236,7 @@ export default function Home() {
           </p>
           {/* Debug Indicator (Forced Rebuild) */}
           <div className="text-xs text-gray-400 mt-2">
-            System Status: {database ? "Ready ✅" : "Error ❌"} | v2.1 (Enhanced Search)
+            System Status: {database ? "Ready ✅" : "Error ❌"} | v2.2 (UX Improvements)
           </div>
         </div>
 
@@ -269,14 +269,33 @@ export default function Home() {
           </CardHeader>
           <CardContent className="pt-6">
             <div className="flex gap-4 mb-4">
-              <Input
-                type="text"
-                placeholder={t('searchPlaceholder')}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                className="flex-1 border-primary/30 focus:border-primary"
-              />
+              <div className="relative flex-1">
+                <Input
+                  type="text"
+                  placeholder={t('searchPlaceholder')}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  className="w-full border-primary/30 focus:border-primary pr-10"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => {
+                      setSearchQuery('');
+                      setSearchResults([]);
+                      setHasSearched(false);
+                      setSelectedMotorA(null);
+                      setEquivalentMotorsB([]);
+                      setSelectedMotorB(null);
+                      setComparison(null);
+                    }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    title="Limpiar búsqueda"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
               <Button 
                 onClick={handleSearch} 
                 className="bg-primary hover:bg-primary/90 text-white px-8"
