@@ -10,7 +10,7 @@
     "dev": "vite --host",
     "build": "vite build",
     "start": "serve -s dist/public -l $PORT",
-    "preview": "vite preview --host",
+    "preview": "serve -s dist/public -l $PORT",
     "check": "tsc --noEmit",
     "format": "prettier --write ."
   },
