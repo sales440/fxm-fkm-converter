@@ -126,6 +126,11 @@ export async function exportToPDF(comparison: ComparisonResult, language: string
      `${comparison.differences.electrical.pcal.fkm?.toFixed(2)} kW`, 
      `${comparison.differences.electrical.pcal.diff?.toFixed(2)} kW`,
      `${comparison.differences.electrical.pcal.percent?.toFixed(1)}%`],
+    [language === 'es' ? 'Drive Recomendado' : 'Recommended Drive',
+     `${comparison.fxm.recommended_drive || '-'}`,
+     `${comparison.fkm.recommended_drive || '-'}`,
+     comparison.fxm.recommended_drive !== comparison.fkm.recommended_drive ? (language === 'es' ? 'Verificar' : 'Check') : '-',
+     '-'],
   ];
   
   autoTable(doc, {

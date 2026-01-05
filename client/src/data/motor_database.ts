@@ -1080,7 +1080,8 @@ export const motorDatabase: MotorDatabase = {
             "m": 0,
             "l": 200
         },
-        "pcal": 21.4
+        "pcal": 21.4,
+        "recommended_drive": "AXD 3.100",
     }
 }
 ,
@@ -1767,7 +1768,8 @@ export const motorDatabase: MotorDatabase = {
             "m": 0,
             "l": 50
         },
-        "pcal": 5.6
+        "pcal": 5.6,
+        "recommended_drive": "AXD 1.35",
     }
 }
 ,

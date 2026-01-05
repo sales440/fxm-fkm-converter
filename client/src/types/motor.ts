@@ -17,6 +17,7 @@ export interface Motor {
   j: number | null;    // Inercia (kg/cm2)
   pcal: number | null; // Potencia de cálculo (kW)
   dimensions: MotorDimensions;
+  recommended_drive?: string; // Drive recomendado (AXD/ACSD)
 }
 
 export interface MotorDatabase {

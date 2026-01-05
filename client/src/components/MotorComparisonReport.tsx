@@ -190,6 +190,17 @@ export default function MotorComparisonReport({ comparison, conversionDirection 
                     {formatPercent(comparison.differences.electrical.pcal.percent)}
                   </td>
                 </tr>
+                {/* Recommended Drive Row */}
+                <tr className="border-b border-slate-100 hover:bg-slate-50 bg-blue-50/30">
+                  <td className="py-3 px-4 text-slate-700 font-bold">Recommended Drive</td>
+                  <td className="text-right py-3 px-4 font-bold text-blue-700">{comparison.fxm.recommended_drive || '-'}</td>
+                  <td className="text-right py-3 px-4 font-bold text-primary">{comparison.fkm.recommended_drive || '-'}</td>
+                  <td className="text-right py-3 px-4 text-slate-500 italic" colSpan={2}>
+                    {comparison.fxm.recommended_drive !== comparison.fkm.recommended_drive ? 
+                      (comparison.fkm.recommended_drive ? 'Check Drive Compatibility' : '-') : 
+                      'Compatible'}
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
