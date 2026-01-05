@@ -19,7 +19,7 @@ const loadImageBuffer = async (url: string): Promise<ArrayBuffer | null> => {
 
 export async function exportToExcel(comparison: ComparisonResult, language: string = 'es') {
   // Obtener recomendaciones
-  const encoderRec = getEncoderRecommendation(comparison.fxm.model);
+  const encoderRec = getEncoderRecommendation(comparison.fxm.model, comparison.fkm.model, language);
   const connectorRec = getConnectorRecommendation(comparison.fxm.model, comparison.fkm.model);
   
   const workbook = new ExcelJS.Workbook();

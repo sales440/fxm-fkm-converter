@@ -184,7 +184,7 @@ function extractFKMFamily(fkmModel: string): string {
   return '';
 }
 
-export function getEncoderRecommendation(fxmModel: string): EncoderRecommendation | undefined {
+export function getEncoderRecommendation(fxmModel: string, fkmModel: string, language: string = 'es'): EncoderRecommendation | undefined {
   const fxmEncoder = detectFXMEncoder(fxmModel);
   const conversion = encoderConversionMap[fxmEncoder];
   
@@ -198,7 +198,7 @@ export function getEncoderRecommendation(fxmModel: string): EncoderRecommendatio
   };
 }
 
-export function getConnectorRecommendation(fxmModel: string, fkmModel: string): ConnectorRecommendation | undefined {
+export function getConnectorRecommendation(fxmModel: string, fkmModel: string, language: string = 'es'): ConnectorRecommendation | undefined {
   const fxmConnector = detectFXMConnector(fxmModel);
   const fkmFamily = extractFKMFamily(fkmModel);
   

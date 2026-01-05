@@ -24,13 +24,13 @@ export default function MotorComparisonReport({ comparison, conversionDirection 
   const [isGeneratingExcel, setIsGeneratingExcel] = useState(false);
   
   // Obtener recomendaciones de encoders y conectores
-  const encoderRec = getEncoderRecommendation(comparison.fxm.model);
-  const connectorRec = getConnectorRecommendation(comparison.fxm.model, comparison.fkm.model);
+  const encoderRec = getEncoderRecommendation(comparison.fxm.model, comparison.fkm.model, language);
+  const connectorRec = getConnectorRecommendation(comparison.fxm.model, comparison.fkm.model, language);
   
   const handleDownloadPDF = async () => {
     setIsGeneratingPDF(true);
     try {
-      await exportToPDF(comparison, language);
+      await exportToPDF([comparison], language);
       toast.success('PDF downloaded successfully');
     } catch (error) {
       console.error('Error exporting PDF:', error);
@@ -404,26 +404,89 @@ export default function MotorComparisonReport({ comparison, conversionDirection 
                         </p>
                       </div>
                       
-                      <div className="bg-slate-50 p-3 rounded border border-slate-200">
-                        <p className="text-xs text-slate-600 font-semibold mb-1">Installation Notes / Notas de Instalación:</p>
-                        <ul className="text-xs text-slate-700 space-y-1 list-disc list-inside">
-                          {Math.abs(dDiff) > 0 && (
-                            <li>Flange diameter difference: {Math.abs(dDiff).toFixed(2)}mm</li>
-                          )}
-                          {Math.abs(eDiff) > 0 && (
-                            <li>Shaft height difference: {Math.abs(eDiff).toFixed(2)}mm</li>
-                          )}
-                          {Math.abs(mDiff) > 0 && (
-                            <li>Mounting hole difference: {Math.abs(mDiff).toFixed(2)}mm</li>
-                          )}
-                          {Math.abs(nDiff) > 0 && (
-                            <li>Hole center distance difference: {Math.abs(nDiff).toFixed(2)}mm</li>
-                          )}
-                          {isFullyCompatible && (
-                            <li className="text-green-700 font-semibold">Perfect mechanical match - Direct replacement</li>
-                          )}
-                        </ul>
+                      {/* Mechanical Flange Differences Table */}
+                    <div className="mt-4">
+                      <h4 className="text-sm font-bold text-fagor-red mb-2 border-b border-fagor-red/20 pb-1">
+                        Flange Mechanical Differences / Diferencias Mecánicas de Brida
+                      </h4>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs border-collapse">
+                          <thead>
+                            <tr className="bg-fagor-red text-white">
+                              <th className="py-2 px-3 text-left font-semibold">Flange Dimension</th>
+                              <th className="py-2 px-3 text-center font-semibold">FXM</th>
+                              <th className="py-2 px-3 text-center font-semibold">FKM</th>
+                              <th className="py-2 px-3 text-center font-semibold">Difference</th>
+                              <th className="py-2 px-3 text-center font-semibold">Status</th>
+                            </tr>
+                          </thead>
+                          <tbody className="border border-slate-200">
+                            {/* Flange Diameter (D) */}
+                            <tr className="border-b border-slate-100 hover:bg-slate-50">
+                              <td className="py-2 px-3 font-medium text-slate-700">Flange Diameter (D)</td>
+                              <td className="py-2 px-3 text-center">{comparison.fxm.dimensions.d ? `${comparison.fxm.dimensions.d} mm` : '-'}</td>
+                              <td className="py-2 px-3 text-center">{comparison.fkm.dimensions.d ? `${comparison.fkm.dimensions.d} mm` : '-'}</td>
+                              <td className="py-2 px-3 text-center font-bold">
+                                {comparison.differences.dimensions.d.diff !== null 
+                                  ? `${Math.abs(comparison.differences.dimensions.d.diff).toFixed(1)} mm` 
+                                  : '-'}
+                              </td>
+                              <td className={`py-2 px-3 text-center font-bold ${Math.abs(comparison.differences.dimensions.d.diff || 0) > 0.5 ? 'text-red-600' : 'text-green-600'}`}>
+                                {Math.abs(comparison.differences.dimensions.d.diff || 0) > 0.5 ? 'Different' : 'Compatible'}
+                              </td>
+                            </tr>
+                            {/* Shaft Height (E) */}
+                            <tr className="border-b border-slate-100 hover:bg-slate-50">
+                              <td className="py-2 px-3 font-medium text-slate-700">Shaft Height (E)</td>
+                              <td className="py-2 px-3 text-center">{comparison.fxm.dimensions.e ? `${comparison.fxm.dimensions.e} mm` : '-'}</td>
+                              <td className="py-2 px-3 text-center">{comparison.fkm.dimensions.e ? `${comparison.fkm.dimensions.e} mm` : '-'}</td>
+                              <td className="py-2 px-3 text-center font-bold">
+                                {comparison.differences.dimensions.e.diff !== null 
+                                  ? `${Math.abs(comparison.differences.dimensions.e.diff).toFixed(1)} mm` 
+                                  : '-'}
+                              </td>
+                              <td className={`py-2 px-3 text-center font-bold ${Math.abs(comparison.differences.dimensions.e.diff || 0) > 0.5 ? 'text-red-600' : 'text-green-600'}`}>
+                                {Math.abs(comparison.differences.dimensions.e.diff || 0) > 0.5 ? 'Different' : 'Compatible'}
+                              </td>
+                            </tr>
+                            {/* Shaft Diameter (N) - Note: Using 'n' from dimensions which usually maps to Shaft Diameter or Pilot */}
+                            <tr className="border-b border-slate-100 hover:bg-slate-50">
+                              <td className="py-2 px-3 font-medium text-slate-700">Shaft Diameter (N)</td>
+                              <td className="py-2 px-3 text-center">{comparison.fxm.dimensions.n ? `${comparison.fxm.dimensions.n} mm` : '-'}</td>
+                              <td className="py-2 px-3 text-center">{comparison.fkm.dimensions.n ? `${comparison.fkm.dimensions.n} mm` : '-'}</td>
+                              <td className="py-2 px-3 text-center font-bold">
+                                {comparison.differences.dimensions.n.diff !== null 
+                                  ? `${Math.abs(comparison.differences.dimensions.n.diff).toFixed(1)} mm` 
+                                  : '-'}
+                              </td>
+                              <td className={`py-2 px-3 text-center font-bold ${Math.abs(comparison.differences.dimensions.n.diff || 0) > 0.5 ? 'text-red-600' : 'text-green-600'}`}>
+                                {Math.abs(comparison.differences.dimensions.n.diff || 0) > 0.5 ? 'Different' : 'Compatible'}
+                              </td>
+                            </tr>
+                            {/* Mounting Length (M) - Note: Using 'm' from dimensions which usually maps to Mounting Hole PCD or similar */}
+                            <tr className="border-b border-slate-100 hover:bg-slate-50">
+                              <td className="py-2 px-3 font-medium text-slate-700">Mounting Length (M)</td>
+                              <td className="py-2 px-3 text-center">{comparison.fxm.dimensions.m ? `${comparison.fxm.dimensions.m} mm` : '-'}</td>
+                              <td className="py-2 px-3 text-center">{comparison.fkm.dimensions.m ? `${comparison.fkm.dimensions.m} mm` : '-'}</td>
+                              <td className="py-2 px-3 text-center font-bold">
+                                {comparison.differences.dimensions.m.diff !== null 
+                                  ? `${Math.abs(comparison.differences.dimensions.m.diff).toFixed(1)} mm` 
+                                  : '-'}
+                              </td>
+                              <td className={`py-2 px-3 text-center font-bold ${Math.abs(comparison.differences.dimensions.m.diff || 0) > 0.5 ? 'text-red-600' : 'text-green-600'}`}>
+                                {Math.abs(comparison.differences.dimensions.m.diff || 0) > 0.5 ? 'Different' : 'Compatible'}
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
                       </div>
+                      {(!isFullyCompatible) && (
+                        <div className="mt-2 text-xs text-amber-700 font-semibold flex items-center gap-1">
+                          <AlertCircle className="h-3 w-3" />
+                          Different Flange - May Require Adapter / Brida diferente - Puede requerir adaptador
+                        </div>
+                      )}
+                    </div>
                     </div>
                   );
                 })()}
@@ -444,113 +507,100 @@ export default function MotorComparisonReport({ comparison, conversionDirection 
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-6">
-          {encoderRec && (
-            <div className="mb-6">
-              <h3 className="text-lg font-bold text-fagor-red mb-3 flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5" />
-                Sistema de Captación (Encoder)
-              </h3>
-              <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
-                  <div>
-                    <p className="text-sm text-slate-600 font-semibold">FXM Encoder:</p>
-                    <p className="text-base font-bold text-slate-800">{encoderRec.fxmEncoder}</p>
+          {/* Component Recommendations Section - Redesigned */}
+          <div className="space-y-8">
+            {/* Encoders Section */}
+            {encoderRec && (
+              <div>
+                <h3 className="text-lg font-bold text-fagor-red mb-4 border-b-2 border-fagor-red pb-2">
+                  Encoders
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="md:col-span-2 space-y-4">
+                    <div>
+                      <p className="text-sm font-bold text-slate-900">Original FXM Encoder:</p>
+                      <p className="text-lg text-slate-700">{encoderRec.fxmEncoder}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-slate-900">Recommended FKM Encoder:</p>
+                      <p className="text-lg font-bold text-fagor-red">{encoderRec.bestMatch}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-slate-900">Alternative Options:</p>
+                      <p className="text-base text-slate-700">{encoderRec.recommendedFkmEncoders.join(', ')}</p>
+                    </div>
+                    <div className="text-sm text-slate-600 italic mt-2">
+                      {encoderRec.notes}
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm text-slate-600 font-semibold">Recommended FKM Encoder:</p>
-                    <p className="text-base font-bold text-fagor-red">{encoderRec.bestMatch}</p>
-                  </div>
-                </div>
-                <div className="mb-3">
-                  <p className="text-sm text-slate-600 font-semibold">Alternative Options:</p>
-                  <p className="text-base text-slate-700">{encoderRec.recommendedFkmEncoders.join(', ')}</p>
-                </div>
-                <div className="bg-blue-50 p-3 rounded border-l-4 border-blue-500">
-                  <p className="text-sm text-blue-900">
-                    <span className="font-semibold">Note:</span> {encoderRec.notes}
-                  </p>
-                </div>
-                {/* Diagrama comparativo de encoders */}
-                <div className="mt-4">
-                  <img 
-                    src="/images/encoder-comparison.png" 
-                    alt="Encoder Comparison Diagram" 
-                    className="w-full rounded-lg border border-slate-300 shadow-sm"
-                    onError={(e) => {
-                      // Fallback si la imagen no existe
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-          
-          {connectorRec && (
-            <div>
-              <h3 className="text-lg font-bold text-fagor-red mb-3 flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5" />
-                Power Connectors / Conectores de Potencia
-              </h3>
-              <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
-                  <div>
-                    <p className="text-sm text-slate-600 font-semibold">FXM Connector:</p>
-                    <p className="text-base font-bold text-slate-800">{connectorRec.fxmConnector}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-600 font-semibold">Recommended FKM Connector:</p>
-                    <p className="text-base font-bold text-fagor-red">{connectorRec.recommendedFkmConnector}</p>
-                  </div>
-                </div>
-                <div className="mb-3">
-                  <p className="text-sm text-slate-600 font-semibold">Wire Gauge / Calibre de Cable:</p>
-                  <p className="text-base text-slate-700 font-medium">{connectorRec.wireGauge}</p>
-                </div>
-                {connectorRec.alternativeConnectors.length > 0 && (
-                  <div className="mb-3">
-                    <p className="text-sm text-slate-600 font-semibold">Alternative Connectors:</p>
-                    <p className="text-base text-slate-700">{connectorRec.alternativeConnectors.join(', ')}</p>
-                  </div>
-                )}
-                <div className="bg-amber-50 p-3 rounded border-l-4 border-amber-500">
-                  <p className="text-sm text-amber-900">
-                    <span className="font-semibold">Note:</span> {connectorRec.notes}
-                  </p>
-                </div>
-                {/* Imágenes de conectores */}
-                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm font-semibold text-slate-700 mb-2">FXM Connector (MC Series):</p>
-                    <img 
-                      src="/connector-mc-series.png" 
-                      alt="MC Series Connector" 
-                      className="w-full rounded-lg border border-slate-300 shadow-sm"
-                    />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-slate-700 mb-2">FKM Connector ({connectorRec.recommendedFkmConnector}):</p>
-                    <img 
-                      src={`/connector-${connectorRec.recommendedFkmConnector.toLowerCase().replace(/\s+/g, '-')}.png`}
-                      alt={`${connectorRec.recommendedFkmConnector} Connector`}
-                      className="w-full rounded-lg border border-slate-300 shadow-sm"
-                      onError={(e) => {
-                        // Fallback si la imagen específica no existe
-                        const target = e.target as HTMLImageElement;
-                        if (connectorRec.recommendedFkmConnector.includes('4x1.5')) {
-                          target.src = '/connector-mpc-4x1.5.png';
-                        } else if (connectorRec.recommendedFkmConnector.includes('4x2.5')) {
-                          target.src = '/connector-mpc-4x2.5.png';
-                        } else {
-                          target.src = '/connector-mpc-4x4.png';
-                        }
-                      }}
-                    />
+                  <div className="flex items-center justify-center bg-white p-2 rounded border border-slate-200">
+                    {/* Placeholder for Encoder Image */}
+                    <div className="text-center">
+                      <img 
+                        src="/images/fkm-encoder-generic.png" 
+                        alt="FKM Encoder" 
+                        className="max-h-32 mx-auto mb-2"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.parentElement!.innerHTML = '<div class="h-32 w-32 bg-slate-100 rounded flex items-center justify-center text-slate-400 text-xs">Encoder Image</div>';
+                        }}
+                      />
+                      <p className="text-xs text-slate-500">FKM Encoder Series</p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+
+            {/* Power Connectors Section */}
+            {connectorRec && (
+              <div>
+                <h3 className="text-lg font-bold text-fagor-red mb-4 border-b-2 border-fagor-red pb-2">
+                  Power Connectors
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="md:col-span-2 space-y-4">
+                    <div>
+                      <p className="text-sm font-bold text-slate-900">Original FXM Connector:</p>
+                      <p className="text-lg text-slate-700">{connectorRec.fxmConnector}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-slate-900">Recommended FKM Connector:</p>
+                      <p className="text-lg font-bold text-fagor-red">{connectorRec.recommendedFkmConnector}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-slate-900">Wire Gauge:</p>
+                      <p className="text-base text-slate-700">{connectorRec.wireGauge}</p>
+                    </div>
+                    {connectorRec.alternativeConnectors.length > 0 && (
+                      <div>
+                        <p className="text-sm font-bold text-slate-900">Alternative Connectors:</p>
+                        <p className="text-base text-slate-700">{connectorRec.alternativeConnectors.join(', ')}</p>
+                      </div>
+                    )}
+                    <div className="text-sm text-slate-600 italic mt-2">
+                      {connectorRec.notes}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-center bg-white p-2 rounded border border-slate-200">
+                    {/* Placeholder for Connector Image */}
+                    <div className="text-center">
+                      <img 
+                        src={`/images/connector-${connectorRec.recommendedFkmConnector.toLowerCase().replace(/[\/\s]/g, '-')}.png`}
+                        alt="FKM Connector" 
+                        className="max-h-32 mx-auto mb-2"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.parentElement!.innerHTML = '<div class="h-32 w-32 bg-slate-100 rounded flex items-center justify-center text-slate-400 text-xs">Connector Image</div>';
+                        }}
+                      />
+                      <p className="text-xs text-slate-500">{connectorRec.recommendedFkmConnector}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
     )}

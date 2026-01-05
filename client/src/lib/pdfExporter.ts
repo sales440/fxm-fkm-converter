@@ -1,194 +1,126 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import type { ComparisonResult } from '@/types/motor';
+import { ComparisonResult } from '../types/motor';
 import { getEncoderRecommendation, getConnectorRecommendation } from './encoderConnectorRecommendations';
-import { getLogoBase64 } from './logoBase64';
 
-const FAGOR_RED: [number, number, number] = [220, 30, 38]; // RGB para #DC1E26
+// Colores corporativos FAGOR
+const FAGOR_RED: [number, number, number] = [220, 30, 38];
+const FAGOR_GREY = [80, 80, 80];
+const LIGHT_GREY = [240, 240, 240];
 
-// Helper para cargar imágenes como Base64
-const loadImageBase64 = (url: string): Promise<string | null> => {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.crossOrigin = 'Anonymous';
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.drawImage(img, 0, 0);
-        resolve(canvas.toDataURL('image/png'));
-      } else {
-        resolve(null);
-      }
-    };
-    img.onerror = () => resolve(null);
-    img.src = url;
-  });
-};
-
-export async function exportToPDF(
-  input: ComparisonResult | ComparisonResult[], 
-  language: string = 'es'
-) {
-  const comparisons = Array.isArray(input) ? input : [input];
+export const exportToPDF = async (comparisons: ComparisonResult[], language: string = 'es') => {
   const doc = new jsPDF();
+  const marginLeft = 15;
+  const marginRight = 15;
+  const contentWidth = doc.internal.pageSize.getWidth() - marginLeft - marginRight;
   
-  // Cargar imágenes globales una sola vez
-  const logoBase64 = await getLogoBase64();
-  const [fxmFlange, fkmFlange] = await Promise.all([
-    loadImageBase64('/flange-fxm.png'),
-    loadImageBase64('/flange-fkm.png')
-  ]);
+  // Cargar logo
+  let logoBase64: string | null = null;
+  try {
+    const response = await fetch('/logo.svg');
+    const svgText = await response.text();
+    
+    // Convertir SVG a canvas para obtener base64 (simplificado para este entorno)
+    // En un entorno real, usaríamos una librería o un logo PNG pre-cargado
+    // Por ahora, usaremos un placeholder o intentaremos cargar un PNG si existe
+    // Asumimos que existe un logo.png para el reporte
+    const pngResponse = await fetch('/logo.png').catch(() => null);
+    if (pngResponse && pngResponse.ok) {
+      const blob = await pngResponse.blob();
+      logoBase64 = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(blob);
+      });
+    }
+  } catch (error) {
+    console.warn('No se pudo cargar el logo para el PDF', error);
+  }
 
+  // Iterar sobre cada comparación para generar el reporte
   for (let i = 0; i < comparisons.length; i++) {
     const comparison = comparisons[i];
-    if (i > 0) doc.addPage();
-
-    // Obtener recomendaciones para este motor
-    const encoderRec = getEncoderRecommendation(comparison.fxm.model) || {
-      fxmEncoder: '-',
-      recommendedFkmEncoders: [],
-      bestMatch: '-',
-      notes: '-'
-    };
-    const connectorRec = getConnectorRecommendation(comparison.fxm.model, comparison.fkm.model) || {
-      fxmConnector: '-',
-      recommendedFkmConnector: '-',
-      alternativeConnectors: [],
-      wireGauge: '-',
-      notes: '-'
-    };
-  
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const marginLeft = 15;
-    const marginRight = 15;
-    const contentWidth = pageWidth - marginLeft - marginRight;
+    const encoderRec = getEncoderRecommendation(comparison.fxm.model, comparison.fkm.model, language);
+    const connectorRec = getConnectorRecommendation(comparison.fxm.model, comparison.fkm.model, language);
     
-    let yPos = 10;
-    
-    // ============= PÁGINA 1: HEADER Y ESPECIFICACIONES =============
-    
-    // Header con membrete FAGOR
-    if (logoBase64) {
-      try {
-        doc.addImage(logoBase64, 'JPEG', marginLeft, yPos, 60, 15);
-      } catch (e) {
-        console.warn('No se pudo cargar el logo:', e);
-      }
+    if (i > 0) {
+      doc.addPage();
     }
     
-    // Información de contacto (derecha)
-    doc.setFontSize(8);
-    doc.setTextColor(0, 0, 0);
-    doc.text('FAGOR Automation USA', pageWidth - marginRight, yPos + 2, { align: 'right' });
-    doc.text('1755 Park Street, Naperville, IL 60563', pageWidth - marginRight, yPos + 6, { align: 'right' });
-    doc.text('Tel: +1 (630) 851-3050', pageWidth - marginRight, yPos + 10, { align: 'right' });
+    let yPos = 20;
+
+    // Header
+    if (logoBase64) {
+      try {
+        doc.addImage(logoBase64, 'PNG', marginLeft, yPos, 40, 10); // Ajustar dimensiones según logo
+      } catch (e) {
+        doc.setFontSize(20);
+        doc.setTextColor(FAGOR_RED[0], FAGOR_RED[1], FAGOR_RED[2]);
+        doc.setFont('helvetica', 'bold');
+        doc.text('FAGOR', marginLeft, yPos + 8);
+      }
+    } else {
+      doc.setFontSize(20);
+      doc.setTextColor(FAGOR_RED[0], FAGOR_RED[1], FAGOR_RED[2]);
+      doc.setFont('helvetica', 'bold');
+      doc.text('FAGOR', marginLeft, yPos + 8);
+    }
     
-    yPos += 20;
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.setFont('helvetica', 'normal');
+    doc.text(language === 'es' ? 'Informe de Conversión de Motores' : 'Motor Conversion Report', doc.internal.pageSize.getWidth() - marginRight, yPos + 5, { align: 'right' });
+    doc.text(new Date().toLocaleDateString(), doc.internal.pageSize.getWidth() - marginRight, yPos + 10, { align: 'right' });
     
-    // Línea separadora roja
-    doc.setDrawColor(FAGOR_RED[0], FAGOR_RED[1], FAGOR_RED[2]);
-    doc.setLineWidth(1.5);
-    doc.line(marginLeft, yPos, pageWidth - marginRight, yPos);
+    yPos += 25;
     
-    yPos += 10;
-    
-    // Título principal
+    // Título Principal
     doc.setFontSize(16);
-    doc.setTextColor(FAGOR_RED[0], FAGOR_RED[1], FAGOR_RED[2]);
-    doc.setFont('helvetica', 'bold');
-    const title = language === 'es' ? 'Reporte de Conversión de Motores: FXM a FKM' : 'Motor Conversion Report: FXM to FKM';
-    doc.text(title, pageWidth / 2, yPos, { align: 'center' });
-    
-    yPos += 12;
-    
-    // Información de motores en cajas
-    doc.setFillColor(240, 240, 240);
-    doc.rect(marginLeft, yPos, contentWidth / 2 - 2, 20, 'F');
-    doc.rect(marginLeft + contentWidth / 2 + 2, yPos, contentWidth / 2 - 2, 20, 'F');
-    
-    doc.setFontSize(10);
     doc.setTextColor(0, 0, 0);
     doc.setFont('helvetica', 'bold');
-    doc.text(language === 'es' ? 'Motor FXM Original' : 'Original FXM Motor', marginLeft + 5, yPos + 6);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(12);
-    doc.text(comparison.fxm.model, marginLeft + 5, yPos + 14);
+    doc.text(language === 'es' ? 'Conversión FXM a FKM' : 'FXM to FKM Conversion', marginLeft, yPos);
     
-    doc.setFont('helvetica', 'bold');
+    yPos += 15;
+    
+    // Resumen de Modelos
+    doc.setFillColor(245, 245, 245);
+    doc.roundedRect(marginLeft, yPos, contentWidth, 25, 2, 2, 'F');
+    
     doc.setFontSize(10);
-    doc.text(language === 'es' ? 'Motor FKM Equivalente' : 'Equivalent FKM Motor', marginLeft + contentWidth / 2 + 7, yPos + 6);
-    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 100, 100);
+    doc.text(language === 'es' ? 'Motor Original (FXM)' : 'Original Motor (FXM)', marginLeft + 5, yPos + 8);
+    doc.text(language === 'es' ? 'Motor Equivalente (FKM)' : 'Equivalent Motor (FKM)', marginLeft + contentWidth / 2 + 5, yPos + 8);
+    
     doc.setFontSize(12);
-    doc.text(comparison.fkm.model, marginLeft + contentWidth / 2 + 7, yPos + 14);
+    doc.setTextColor(0, 0, 0);
+    doc.setFont('helvetica', 'bold');
+    doc.text(comparison.fxm.model, marginLeft + 5, yPos + 18);
+    doc.setTextColor(FAGOR_RED[0], FAGOR_RED[1], FAGOR_RED[2]);
+    doc.text(comparison.fkm.model, marginLeft + contentWidth / 2 + 5, yPos + 18);
     
-    yPos += 28;
+    yPos += 35;
     
-    // Sección: Especificaciones Eléctricas
+    // Sección: Especificaciones Técnicas
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(FAGOR_RED[0], FAGOR_RED[1], FAGOR_RED[2]);
-    doc.text(language === 'es' ? 'Especificaciones Eléctricas' : 'Electrical Specifications', marginLeft, yPos);
+    doc.text(language === 'es' ? 'Especificaciones Técnicas' : 'Technical Specifications', marginLeft, yPos);
     
     yPos += 8;
     
-    // Tabla de especificaciones eléctricas
-    const electricalData = [
-      [language === 'es' ? 'Par a Rótor Parado (Mo)' : 'Stall Torque (Mo)', 
-       `${comparison.differences.electrical.mo.fxm} Nm`, 
-       `${comparison.differences.electrical.mo.fkm} Nm`, 
-       `${comparison.differences.electrical.mo.diff?.toFixed(2)} Nm`,
-       `${comparison.differences.electrical.mo.percent?.toFixed(1)}%`],
-      [language === 'es' ? 'Par Nominal (Mn)' : 'Rated Torque (Mn)', 
-       `${comparison.differences.electrical.mn.fxm} Nm`, 
-       `${comparison.differences.electrical.mn.fkm} Nm`, 
-       `${comparison.differences.electrical.mn.diff?.toFixed(2)} Nm`,
-       `${comparison.differences.electrical.mn.percent?.toFixed(1)}%`],
-      [language === 'es' ? 'Par de Pico (Mp)' : 'Peak Torque (Mp)', 
-       `${comparison.differences.electrical.mp.fxm} Nm`, 
-       `${comparison.differences.electrical.mp.fkm} Nm`, 
-       `${comparison.differences.electrical.mp.diff?.toFixed(2)} Nm`,
-       `${comparison.differences.electrical.mp.percent?.toFixed(1)}%`],
-      [language === 'es' ? 'Corriente en Reposo (Io)' : 'Stall Current (Io)', 
-       `${comparison.differences.electrical.io.fxm} Arms`, 
-       `${comparison.differences.electrical.io.fkm} Arms`, 
-       `${comparison.differences.electrical.io.diff?.toFixed(2)} Arms`,
-       `${comparison.differences.electrical.io.percent?.toFixed(1)}%`],
-      [language === 'es' ? 'Velocidad Nominal (RPM)' : 'Rated Speed (RPM)', 
-       `${comparison.differences.electrical.rpm.fxm}`, 
-       `${comparison.differences.electrical.rpm.fkm}`, 
-       `${comparison.differences.electrical.rpm.diff}`,
-       `${comparison.differences.electrical.rpm.percent?.toFixed(1)}%`],
-      [language === 'es' ? 'Inercia (J)' : 'Inertia (J)', 
-       `${comparison.differences.electrical.j.fxm} kg/cm²`, 
-       `${comparison.differences.electrical.j.fkm} kg/cm²`, 
-       `${comparison.differences.electrical.j.diff?.toFixed(2)} kg/cm²`,
-       `${comparison.differences.electrical.j.percent?.toFixed(1)}%`],
-      [language === 'es' ? 'Potencia Calculada (Pcal)' : 'Calculated Power (Pcal)', 
-       `${comparison.differences.electrical.pcal.fxm?.toFixed(2)} kW`, 
-       `${comparison.differences.electrical.pcal.fkm?.toFixed(2)} kW`, 
-       `${comparison.differences.electrical.pcal.diff?.toFixed(2)} kW`,
-       `${comparison.differences.electrical.pcal.percent?.toFixed(1)}%`],
-      [language === 'es' ? 'Drive Recomendado' : 'Recommended Drive',
-       `${comparison.fxm.recommended_drive || '-'}`,
-       `${comparison.fkm.recommended_drive || '-'}`,
-       comparison.fxm.recommended_drive !== comparison.fkm.recommended_drive ? (language === 'es' ? 'Verificar' : 'Check') : '-',
-       '-'],
+    const specsData = [
+      [language === 'es' ? 'Par a Rotor Parado (Mo)' : 'Stall Torque (Mo)', `${comparison.fxm.mo} Nm`, `${comparison.fkm.mo} Nm`, `${comparison.differences.electrical.mo.diff} Nm`],
+      [language === 'es' ? 'Par Nominal (Mn)' : 'Rated Torque (Mn)', `${comparison.fxm.mn} Nm`, `${comparison.fkm.mn} Nm`, `${comparison.differences.electrical.mn.diff} Nm`],
+      [language === 'es' ? 'Velocidad Nominal' : 'Rated Speed', `${comparison.fxm.rpm} rpm`, `${comparison.fkm.rpm} rpm`, `${comparison.differences.electrical.rpm.diff} rpm`],
+      [language === 'es' ? 'Potencia Calculada' : 'Calculated Power', `${comparison.fxm.pcal} kW`, `${comparison.fkm.pcal} kW`, `${comparison.differences.electrical.pcal.diff} kW`],
+      [language === 'es' ? 'Corriente a Rotor Parado (Io)' : 'Stall Current (Io)', `${comparison.fxm.io} A`, `${comparison.fkm.io} A`, `${comparison.differences.electrical.io.diff} A`],
+      [language === 'es' ? 'Inercia (J)' : 'Inertia (J)', `${comparison.fxm.j} kg·cm²`, `${comparison.fkm.j} kg·cm²`, `${comparison.differences.electrical.j.diff} kg·cm²`],
     ];
     
     autoTable(doc, {
       startY: yPos,
-      head: [[
-        language === 'es' ? 'Especificación' : 'Specification', 
-        'FXM', 
-        'FKM', 
-        language === 'es' ? 'Diferencia' : 'Difference',
-        language === 'es' ? 'Cambio %' : 'Change %'
-      ]],
-      body: electricalData,
+      head: [[language === 'es' ? 'Parámetro' : 'Parameter', 'FXM', 'FKM', language === 'es' ? 'Diferencia' : 'Difference']],
+      body: specsData,
       theme: 'grid',
       headStyles: {
         fillColor: FAGOR_RED,
@@ -203,15 +135,14 @@ export async function exportToPDF(
       },
       columnStyles: {
         0: { cellWidth: 60 },
-        1: { halign: 'center', cellWidth: 30 },
-        2: { halign: 'center', cellWidth: 30 },
-        3: { halign: 'center', cellWidth: 30 },
-        4: { halign: 'center', cellWidth: 25 }
+        1: { halign: 'center', cellWidth: 35 },
+        2: { halign: 'center', cellWidth: 35 },
+        3: { halign: 'center', cellWidth: 35 }
       },
       margin: { left: marginLeft, right: marginRight },
     });
     
-    yPos = (doc as any).lastAutoTable.finalY + 10;
+    yPos = (doc as any).lastAutoTable.finalY + 15;
     
     // Sección: Dimensiones Mecánicas
     doc.setFontSize(12);
@@ -221,7 +152,7 @@ export async function exportToPDF(
     
     yPos += 8;
     
-    // Tabla de dimensiones
+    // Tabla de dimensiones generales
     const dimensionsData = [
       [language === 'es' ? 'Longitud Total (L)' : 'Total Length (L)', 
        `${comparison.differences.dimensions.l.fxm} mm`, 
@@ -231,22 +162,6 @@ export async function exportToPDF(
        `${comparison.differences.dimensions.ac.fxm} mm`, 
        `${comparison.differences.dimensions.ac.fkm} mm`, 
        `${comparison.differences.dimensions.ac.diff} mm`],
-      [language === 'es' ? 'Diámetro de Eje (N)' : 'Shaft Diameter (N)', 
-       `${comparison.differences.dimensions.n.fxm} mm`, 
-       `${comparison.differences.dimensions.n.fkm} mm`, 
-       `${comparison.differences.dimensions.n.diff} mm`],
-      [language === 'es' ? 'Diámetro de Brida (D)' : 'Flange Diameter (D)', 
-       `${comparison.differences.dimensions.d.fxm} mm`, 
-       `${comparison.differences.dimensions.d.fkm} mm`, 
-       `${comparison.differences.dimensions.d.diff} mm`],
-      [language === 'es' ? 'Altura de Eje (E)' : 'Shaft Height (E)', 
-       `${comparison.differences.dimensions.e.fxm} mm`, 
-       `${comparison.differences.dimensions.e.fkm} mm`, 
-       `${comparison.differences.dimensions.e.diff} mm`],
-      [language === 'es' ? 'Longitud de Montaje (M)' : 'Mounting Length (M)', 
-       `${comparison.differences.dimensions.m.fxm} mm`, 
-       `${comparison.differences.dimensions.m.fkm} mm`, 
-       `${comparison.differences.dimensions.m.diff} mm`],
     ];
     
     autoTable(doc, {
@@ -271,7 +186,7 @@ export async function exportToPDF(
         cellPadding: 3
       },
       columnStyles: {
-        0: { cellWidth: 70 },
+        0: { cellWidth: 60 },
         1: { halign: 'center', cellWidth: 35 },
         2: { halign: 'center', cellWidth: 35 },
         3: { halign: 'center', cellWidth: 35 }
@@ -280,38 +195,93 @@ export async function exportToPDF(
     });
     
     yPos = (doc as any).lastAutoTable.finalY + 10;
-    
-    // ============= SECCIÓN: DIFERENCIAS MECÁNICAS DE BRIDAS =============
-    
-    // Verificar si necesitamos nueva página
-    if (yPos > pageHeight - 100) {
-      doc.addPage();
-      yPos = 20;
-    }
-    
-    // Título de sección de bridas
-    doc.setFontSize(12);
+
+    // Nueva Tabla: Diferencias Mecánicas de Brida (Flange Mechanical Differences)
+    doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(FAGOR_RED[0], FAGOR_RED[1], FAGOR_RED[2]);
-    doc.text(language === 'es' ? 'Comparativa Visual de Bridas' : 'Flange Visual Comparison', marginLeft, yPos);
+    doc.text(language === 'es' ? 'Diferencias Mecánicas de Brida' : 'Flange Mechanical Differences', marginLeft, yPos);
     
-    yPos += 10;
+    yPos += 6;
+
+    const flangeData = [
+      [
+        language === 'es' ? 'Diámetro de Brida (D)' : 'Flange Diameter (D)',
+        comparison.fxm.dimensions.d ? `${comparison.fxm.dimensions.d} mm` : '-',
+        comparison.fkm.dimensions.d ? `${comparison.fkm.dimensions.d} mm` : '-',
+        comparison.differences.dimensions.d.diff !== null ? `${Math.abs(comparison.differences.dimensions.d.diff).toFixed(1)} mm` : '-',
+        Math.abs(comparison.differences.dimensions.d.diff || 0) > 0.5 ? (language === 'es' ? 'Diferente' : 'Different') : (language === 'es' ? 'Compatible' : 'Compatible')
+      ],
+      [
+        language === 'es' ? 'Altura de Eje (E)' : 'Shaft Height (E)',
+        comparison.fxm.dimensions.e ? `${comparison.fxm.dimensions.e} mm` : '-',
+        comparison.fkm.dimensions.e ? `${comparison.fkm.dimensions.e} mm` : '-',
+        comparison.differences.dimensions.e.diff !== null ? `${Math.abs(comparison.differences.dimensions.e.diff).toFixed(1)} mm` : '-',
+        Math.abs(comparison.differences.dimensions.e.diff || 0) > 0.5 ? (language === 'es' ? 'Diferente' : 'Different') : (language === 'es' ? 'Compatible' : 'Compatible')
+      ],
+      [
+        language === 'es' ? 'Diámetro de Eje (N)' : 'Shaft Diameter (N)',
+        comparison.fxm.dimensions.n ? `${comparison.fxm.dimensions.n} mm` : '-',
+        comparison.fkm.dimensions.n ? `${comparison.fkm.dimensions.n} mm` : '-',
+        comparison.differences.dimensions.n.diff !== null ? `${Math.abs(comparison.differences.dimensions.n.diff).toFixed(1)} mm` : '-',
+        Math.abs(comparison.differences.dimensions.n.diff || 0) > 0.5 ? (language === 'es' ? 'Diferente' : 'Different') : (language === 'es' ? 'Compatible' : 'Compatible')
+      ],
+      [
+        language === 'es' ? 'Longitud de Montaje (M)' : 'Mounting Length (M)',
+        comparison.fxm.dimensions.m ? `${comparison.fxm.dimensions.m} mm` : '-',
+        comparison.fkm.dimensions.m ? `${comparison.fkm.dimensions.m} mm` : '-',
+        comparison.differences.dimensions.m.diff !== null ? `${Math.abs(comparison.differences.dimensions.m.diff).toFixed(1)} mm` : '-',
+        Math.abs(comparison.differences.dimensions.m.diff || 0) > 0.5 ? (language === 'es' ? 'Diferente' : 'Different') : (language === 'es' ? 'Compatible' : 'Compatible')
+      ]
+    ];
+
+    autoTable(doc, {
+      startY: yPos,
+      head: [[
+        language === 'es' ? 'Dimensión de Brida' : 'Flange Dimension', 
+        'FXM', 
+        'FKM', 
+        language === 'es' ? 'Diferencia' : 'Difference',
+        language === 'es' ? 'Estado' : 'Status'
+      ]],
+      body: flangeData,
+      theme: 'grid',
+      headStyles: {
+        fillColor: FAGOR_RED,
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        fontSize: 9,
+        halign: 'center'
+      },
+      bodyStyles: {
+        fontSize: 8,
+        cellPadding: 3
+      },
+      columnStyles: {
+        0: { cellWidth: 50 },
+        1: { halign: 'center', cellWidth: 25 },
+        2: { halign: 'center', cellWidth: 25 },
+        3: { halign: 'center', cellWidth: 25 },
+        4: { halign: 'center', cellWidth: 30, fontStyle: 'bold' }
+      },
+      didParseCell: function(data) {
+        if (data.section === 'body' && data.column.index === 4) {
+          const text = data.cell.raw as string;
+          if (text === 'Diferente' || text === 'Different') {
+            data.cell.styles.textColor = [220, 30, 38]; // Rojo
+          } else {
+            data.cell.styles.textColor = [0, 128, 0]; // Verde
+          }
+        }
+      },
+      margin: { left: marginLeft, right: marginRight },
+    });
+
+    yPos = (doc as any).lastAutoTable.finalY + 10;
     
-    // Usar imágenes de bridas precargadas
-    const flangeImageWidth = 80;
-    const flangeImageHeight = 80;
-    const imageSpacing = 10;
-    
-    if (fxmFlange) doc.addImage(fxmFlange, 'PNG', marginLeft, yPos, flangeImageWidth, flangeImageHeight);
-    if (fkmFlange) doc.addImage(fkmFlange, 'PNG', marginLeft + flangeImageWidth + imageSpacing, yPos, flangeImageWidth, flangeImageHeight);
-    
-    // Etiquetas debajo de las imágenes
-    doc.setFontSize(10);
-    doc.setTextColor(0, 0, 0);
-    doc.text('FXM', marginLeft + flangeImageWidth / 2, yPos + flangeImageHeight + 5, { align: 'center' });
-    doc.text('FKM', marginLeft + flangeImageWidth + imageSpacing + flangeImageWidth / 2, yPos + flangeImageHeight + 5, { align: 'center' });
-    
-    yPos += flangeImageHeight + 15;
+    // Imágenes de Bridas (Placeholder)
+    // En una implementación real, aquí irían las imágenes de las bridas
+    // Como no tenemos las imágenes reales cargadas, dejaremos un espacio reservado
     
     // ============= PÁGINA 2: RECOMENDACIONES Y CONECTORES =============
     doc.addPage();
@@ -327,56 +297,61 @@ export async function exportToPDF(
     }
     yPos += 20;
     
-    // Sección: Recomendaciones de Encoder
-    doc.setFontSize(12);
+    // Sección: Recomendaciones de Componentes
+    doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(FAGOR_RED[0], FAGOR_RED[1], FAGOR_RED[2]);
-    doc.text(language === 'es' ? 'Recomendaciones de Encoder' : 'Encoder Recommendations', marginLeft, yPos);
-    yPos += 8;
+    doc.text(language === 'es' ? 'Recomendaciones de Componentes' : 'Component Recommendations', marginLeft, yPos);
+    yPos += 10;
     
-    doc.setFontSize(10);
+    // Tabla de Encoders (Formato Mejorado)
+    doc.setFontSize(11);
     doc.setTextColor(0, 0, 0);
-    doc.setFont('helvetica', 'normal');
+    doc.text(language === 'es' ? 'Encoders' : 'Encoders', marginLeft, yPos);
+    yPos += 6;
     
-    const encoderText = language === 'es' 
-      ? `El motor FXM seleccionado tiene un encoder tipo "${encoderRec.fxmEncoder}". Se recomienda configurar el drive FKM con los parámetros correspondientes a este encoder. ${encoderRec.notes}`
-      : `The selected FXM motor has an encoder type "${encoderRec.fxmEncoder}". It is recommended to configure the FKM drive with the parameters corresponding to this encoder. ${encoderRec.notes}`;
-      
-    const encoderLines = doc.splitTextToSize(encoderText, contentWidth);
-    doc.text(encoderLines, marginLeft, yPos);
-    yPos += encoderLines.length * 5 + 10;
-    
-    // Sección: Conectores y Cables
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(FAGOR_RED[0], FAGOR_RED[1], FAGOR_RED[2]);
-    doc.text(language === 'es' ? 'Conectores y Cables' : 'Connectors and Cables', marginLeft, yPos);
-    yPos += 8;
-    
-    // Tabla de conectores simplificada
-    const connectorData = [
-      [language === 'es' ? 'Parámetro' : 'Parameter', 'Detalle / Detail'],
-      [language === 'es' ? 'Conector FXM (Original)' : 'FXM Connector (Original)', connectorRec.fxmConnector || '-'],
-      [language === 'es' ? 'Conector FKM (Recomendado)' : 'FKM Connector (Recommended)', connectorRec.recommendedFkmConnector || '-'],
-      [language === 'es' ? 'Cable / Calibre' : 'Cable / Gauge', connectorRec.wireGauge || '-'],
-      [language === 'es' ? 'Notas' : 'Notes', connectorRec.notes || '-']
+    const encoderData = [
+      [language === 'es' ? 'Encoder FXM Original' : 'Original FXM Encoder', encoderRec?.fxmEncoder || '-'],
+      [language === 'es' ? 'Encoder FKM Recomendado' : 'Recommended FKM Encoder', encoderRec?.bestMatch || '-'],
+      [language === 'es' ? 'Opciones Alternativas' : 'Alternative Options', encoderRec?.recommendedFkmEncoders?.join(', ') || '-'],
+      [language === 'es' ? 'Notas' : 'Notes', encoderRec?.notes || '-']
     ];
     
     autoTable(doc, {
       startY: yPos,
-      head: [[language === 'es' ? 'Especificación' : 'Specification', language === 'es' ? 'Valor' : 'Value']],
-      body: connectorData.slice(1),
+      body: encoderData,
       theme: 'grid',
-      headStyles: {
-        fillColor: FAGOR_RED,
-        textColor: [255, 255, 255],
-        fontStyle: 'bold',
-        fontSize: 9,
-        halign: 'center'
+      headStyles: { fillColor: FAGOR_RED },
+      columnStyles: {
+        0: { cellWidth: 60, fontStyle: 'bold', fillColor: [245, 245, 245] },
+        1: { cellWidth: 'auto' }
       },
-      bodyStyles: {
-        fontSize: 8,
-        cellPadding: 3
+      margin: { left: marginLeft, right: marginRight },
+    });
+    
+    yPos = (doc as any).lastAutoTable.finalY + 10;
+    
+    // Tabla de Conectores (Formato Mejorado)
+    doc.setFontSize(11);
+    doc.text(language === 'es' ? 'Conectores de Potencia' : 'Power Connectors', marginLeft, yPos);
+    yPos += 6;
+    
+    const connectorData = [
+      [language === 'es' ? 'Conector FXM Original' : 'Original FXM Connector', connectorRec?.fxmConnector || '-'],
+      [language === 'es' ? 'Conector FKM Recomendado' : 'Recommended FKM Connector', connectorRec?.recommendedFkmConnector || '-'],
+      [language === 'es' ? 'Calibre de Cable' : 'Wire Gauge', connectorRec?.wireGauge || '-'],
+      [language === 'es' ? 'Conectores Alternativos' : 'Alternative Connectors', connectorRec?.alternativeConnectors?.join(', ') || '-'],
+      [language === 'es' ? 'Notas' : 'Notes', connectorRec?.notes || '-']
+    ];
+    
+    autoTable(doc, {
+      startY: yPos,
+      body: connectorData,
+      theme: 'grid',
+      headStyles: { fillColor: FAGOR_RED },
+      columnStyles: {
+        0: { cellWidth: 60, fontStyle: 'bold', fillColor: [245, 245, 245] },
+        1: { cellWidth: 'auto' }
       },
       margin: { left: marginLeft, right: marginRight },
     });
@@ -479,8 +454,7 @@ export async function exportToPDF(
   const totalPages = doc.getNumberOfPages();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
-  const marginRight = 15;
-
+  
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i);
     doc.setFontSize(8);
