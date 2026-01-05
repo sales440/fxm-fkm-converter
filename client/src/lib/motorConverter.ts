@@ -64,10 +64,25 @@ export function searchFXMMotors(database: MotorDatabase, query: string): Motor[]
     const regexPattern = normalizedKey.replace(/X/g, '[A-Z0-9]');
     const regex = new RegExp('^' + regexPattern); // Anclamos al inicio para mayor precisión
     
-    // 1. Coincidencia exacta con comodines (ej: FXM3240AXX coincide con FXM3240AE1)
-    // 2. Coincidencia parcial simple (ej: FXM32 coincide con FXM32...)
-    // 3. Coincidencia inversa parcial (ej: FXM3240AE1000 coincide con FXM3240AXX...)
-    if (regex.test(normalizedQuery) || normalizedKey.includes(normalizedQuery) || normalizedQuery.includes(normalizedKey.substring(0, 8))) {
+    // Lógica de coincidencia robusta v1.6
+    // 1. Coincidencia exacta con comodines (Regex generada desde la clave de BD)
+    const matchRegex = regex.test(normalizedQuery);
+    
+    // 2. Coincidencia parcial bidireccional (ignorando XX para evitar falsos positivos)
+    // Si la query es "FXM11", debe encontrar "FXM1130A..."
+    // Si la query es "FXM1130AE1010", debe encontrar "FXM1130AXX..."
+    
+    // Limpiamos 'X' de la clave normalizada para comparar la raíz
+    const cleanKeyRoot = normalizedKey.replace(/X/g, '');
+    const cleanQuery = normalizedQuery;
+    
+    const matchPartial = cleanKeyRoot.startsWith(cleanQuery) || cleanQuery.startsWith(cleanKeyRoot);
+    
+    // 3. Coincidencia laxa para entradas muy específicas o con formato extraño
+    // Si la clave normalizada está contenida en la query o viceversa
+    const matchLoose = normalizedKey.includes(normalizedQuery) || normalizedQuery.includes(cleanKeyRoot);
+
+    if (matchRegex || matchPartial || matchLoose) {
       // Si encontramos un resultado genérico (con 'xx'), intentamos personalizarlo
       // con el encoder equivalente correcto
       const userEncoder = extractEncoder(query);
@@ -118,10 +133,25 @@ export function searchFKMMotors(database: MotorDatabase, query: string): Motor[]
     const regexPattern = normalizedKey.replace(/X/g, '[A-Z0-9]');
     const regex = new RegExp('^' + regexPattern); // Anclamos al inicio para mayor precisión
     
-    // 1. Coincidencia exacta con comodines (ej: FXM3240AXX coincide con FXM3240AE1)
-    // 2. Coincidencia parcial simple (ej: FXM32 coincide con FXM32...)
-    // 3. Coincidencia inversa parcial (ej: FXM3240AE1000 coincide con FXM3240AXX...)
-    if (regex.test(normalizedQuery) || normalizedKey.includes(normalizedQuery) || normalizedQuery.includes(normalizedKey.substring(0, 8))) {
+    // Lógica de coincidencia robusta v1.6
+    // 1. Coincidencia exacta con comodines (Regex generada desde la clave de BD)
+    const matchRegex = regex.test(normalizedQuery);
+    
+    // 2. Coincidencia parcial bidireccional (ignorando XX para evitar falsos positivos)
+    // Si la query es "FXM11", debe encontrar "FXM1130A..."
+    // Si la query es "FXM1130AE1010", debe encontrar "FXM1130AXX..."
+    
+    // Limpiamos 'X' de la clave normalizada para comparar la raíz
+    const cleanKeyRoot = normalizedKey.replace(/X/g, '');
+    const cleanQuery = normalizedQuery;
+    
+    const matchPartial = cleanKeyRoot.startsWith(cleanQuery) || cleanQuery.startsWith(cleanKeyRoot);
+    
+    // 3. Coincidencia laxa para entradas muy específicas o con formato extraño
+    // Si la clave normalizada está contenida en la query o viceversa
+    const matchLoose = normalizedKey.includes(normalizedQuery) || normalizedQuery.includes(cleanKeyRoot);
+
+    if (matchRegex || matchPartial || matchLoose) {
       // Si encontramos un resultado genérico (con 'xx'), intentamos personalizarlo
       // con el encoder equivalente correcto
       const userEncoder = extractEncoder(query);
