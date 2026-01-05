@@ -10,6 +10,36 @@ function normalizeModel(model: string): string {
   return model.toUpperCase().replace(/[^A-Z0-9]/g, '');
 }
 
+// Tabla de equivalencia de Encoders (FXM <-> FKM)
+// Fuente: Manuales de usuario Fagor Automation
+const ENCODER_MAPPING: Record<string, string> = {
+  // FXM -> FKM
+  'E1': 'A1', // Encoder incremental
+  'E2': 'A2',
+  'E3': 'A3',
+  'S1': 'C1', // Encoder sinusoidal
+  'S2': 'C2',
+  
+  // FKM -> FXM (Bidireccional)
+  'A1': 'E1',
+  'A2': 'E2',
+  'A3': 'E3',
+  'C1': 'S1',
+  'C2': 'S2'
+};
+
+// Función para extraer el encoder de un modelo completo
+const extractEncoder = (model: string): string | null => {
+  // Busca patrones comunes de encoder: punto + 2 caracteres + punto (ej: .E1. o .A1.)
+  // O simplemente busca las claves conocidas
+  for (const code of Object.keys(ENCODER_MAPPING)) {
+    if (model.includes(`.${code}.`) || model.includes(` ${code} `) || model.endsWith(code)) {
+      return code;
+    }
+  }
+  return null;
+};
+
 /**
  * Detecta automáticamente el tipo de motor (FXM o FKM)
  */
@@ -41,6 +71,22 @@ export function searchFXMMotors(database: MotorDatabase, query: string): Motor[]
     // 2. Coincidencia parcial simple (ej: FXM32 coincide con FXM32...)
     // 3. Coincidencia inversa parcial (ej: FXM3240AE1000 coincide con FXM3240AXX...)
     if (regex.test(normalizedQuery) || normalizedKey.includes(normalizedQuery) || normalizedQuery.includes(normalizedKey.substring(0, 8))) {
+      // Si encontramos un resultado genérico (con 'xx'), intentamos personalizarlo
+      // con el encoder equivalente correcto
+      const userEncoder = extractEncoder(query);
+      if (userEncoder && motor.model.includes('xx')) {
+        const equivalentEncoder = ENCODER_MAPPING[userEncoder];
+        if (equivalentEncoder) {
+          // Clonamos el motor para no modificar la BD original
+          const customizedMotor = { ...motor };
+          // Reemplazamos 'xx' por el encoder equivalente (ej: FKM...xx... -> FKM...A1...)
+          // Asumimos que el primer 'xx' corresponde al encoder en la estructura estándar
+          customizedMotor.model = customizedMotor.model.replace('xx', equivalentEncoder);
+          results.push(customizedMotor);
+          continue; // Pasamos al siguiente para no duplicar
+        }
+      }
+      
       results.push(motor);
     }
   }
@@ -79,6 +125,22 @@ export function searchFKMMotors(database: MotorDatabase, query: string): Motor[]
     // 2. Coincidencia parcial simple (ej: FXM32 coincide con FXM32...)
     // 3. Coincidencia inversa parcial (ej: FXM3240AE1000 coincide con FXM3240AXX...)
     if (regex.test(normalizedQuery) || normalizedKey.includes(normalizedQuery) || normalizedQuery.includes(normalizedKey.substring(0, 8))) {
+      // Si encontramos un resultado genérico (con 'xx'), intentamos personalizarlo
+      // con el encoder equivalente correcto
+      const userEncoder = extractEncoder(query);
+      if (userEncoder && motor.model.includes('xx')) {
+        const equivalentEncoder = ENCODER_MAPPING[userEncoder];
+        if (equivalentEncoder) {
+          // Clonamos el motor para no modificar la BD original
+          const customizedMotor = { ...motor };
+          // Reemplazamos 'xx' por el encoder equivalente (ej: FKM...xx... -> FKM...A1...)
+          // Asumimos que el primer 'xx' corresponde al encoder en la estructura estándar
+          customizedMotor.model = customizedMotor.model.replace('xx', equivalentEncoder);
+          results.push(customizedMotor);
+          continue; // Pasamos al siguiente para no duplicar
+        }
+      }
+      
       results.push(motor);
     }
   }
