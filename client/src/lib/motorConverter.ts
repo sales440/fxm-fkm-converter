@@ -223,7 +223,7 @@ export function findEquivalentFKM(fxmMotor: Motor, database: MotorDatabase): Mot
   const equivalents: Motor[] = [];
   const targetRpm = fxmMotor.rpm;
   const targetMo = fxmMotor.mo;
-  const moTolerance = 0.25; // 25% tolerancia
+  const moTolerance = 0.30; // 30% tolerancia (aumentado para FXM 32.40A)
   
   for (const fkmMotor of Object.values(database.fkm_motors)) {
     // Criterio 1: RPM debe ser igual
@@ -268,7 +268,7 @@ export function findEquivalentFXM(fkmMotor: Motor, database: MotorDatabase): Mot
   const equivalents: Motor[] = [];
   const targetRpm = fkmMotor.rpm;
   const targetMo = fkmMotor.mo;
-  const moTolerance = 0.25; // 25% tolerancia
+  const moTolerance = 0.30; // 30% tolerancia (aumentado para FXM 32.40A)
   
   for (const fxmMotor of Object.values(database.fxm_motors)) {
     // Criterio 1: RPM debe ser igual
