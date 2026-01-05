@@ -1081,7 +1081,7 @@ export const motorDatabase: MotorDatabase = {
             "l": 200
         },
         "pcal": 21.4,
-        "recommended_drive": "AXD 3.100",
+        "recommended_drive": "AXD 3.100"
     }
 }
 ,
