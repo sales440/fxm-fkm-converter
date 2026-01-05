@@ -1538,6 +1538,24 @@ export const motorDatabase: MotorDatabase = {
         },
         "pcal": 28.6
     },
+    "FKM 42.40A.xx.x00": {
+        "model": "FKM 42.40A.xx.x00",
+        "mo": 6.3,
+        "mn": 3.6,
+        "mp": 25,
+        "rpm": 4000,
+        "j": 10.0,
+        "io": 6.1,
+        "dimensions": {
+            "ac": 0,
+            "n": 0,
+            "d": 0,
+            "e": 0,
+            "m": 0,
+            "l": 50
+        },
+        "pcal": 2.8
+    },
     "FKM 43.40A.xx.x00": {
         "model": "FKM 43.40A.xx.x00",
         "mo": 9.0,
