@@ -5,36 +5,9 @@ import type { MotorDatabase, Motor, ComparisonResult, DimensionComparison, Elect
  * Elimina espacios, puntos extras y convierte a mayúsculas
  */
 function normalizeModel(model: string): string {
-  let normalized = model
-    .toUpperCase()
-    .replace(/\s+/g, '.') // Convertir espacios a puntos
-    .replace(/-/g, '.') // Convertir guiones a puntos
-    .replace(/\.+/g, '.') // Normalizar puntos múltiples
-    .replace(/[xX]{2,}/g, 'XX'); // Normalizar xx, XX, etc.
-  
-  // Convertir formatos complejos como "FKM22.45A.E3.200.3-K10" a formato base
-  // Extraer solo la parte base del modelo: FKM22.45A
-  const complexMatch = normalized.match(/(F[XK]M\d+\.\d+[A-Z])/);
-  if (complexMatch) {
-    const baseModel = complexMatch[1];
-    // Agregar el formato estándar .XX.X00
-    normalized = baseModel + '.XX.X00';
-    return normalized;
-  }
-  
-  // Convertir formatos como E1, E2, etc. a XX
-  normalized = normalized.replace(/\.E\d+/gi, '.XX');
-  
-  // Convertir sufijos numéricos finales a formato estándar
-  // Ejemplos: -010 -> .x10, -000 -> .x00, .010 -> .x10
-  normalized = normalized.replace(/\.(\d)(\d)(\d)$/,  (match, d1, d2, d3) => {
-    return `.X${d2}${d3}`;
-  });
-  
-  // Asegurar que el formato tenga espacios correctos: FXM##.##X.XX.X##
-  normalized = normalized.replace(/(F[XK]M)(\d+)/, '$1 $2');
-  
-  return normalized;
+  // Simplificación radical: eliminar todo lo que no sea alfanumérico
+  // Esto permite que "FXM32.40A.E1.000" coincida con "FXM 32.40A E1 000"
+  return model.toUpperCase().replace(/[^A-Z0-9]/g, '');
 }
 
 /**
