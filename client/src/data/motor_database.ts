@@ -1322,6 +1322,7 @@ export const motorDatabase: MotorDatabase = {
         },
         "pcal": 24.0
     },
+
     "FKM 22.30A.xx.x00": {
         "model": "FKM 22.30A.xx.x00",
         "mo": 3.2,

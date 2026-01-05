@@ -236,7 +236,7 @@ export default function Home() {
           </p>
           {/* Debug Indicator (Forced Rebuild) */}
           <div className="text-xs text-gray-400 mt-2">
-            System Status: {database ? "Ready ✅" : "Error ❌"} | v2.8 (Connector Fix)
+            System Status: {database ? "Ready ✅" : "Error ❌"} | v2.9 (FXM11 Fix)
           </div>
         </div>
 
