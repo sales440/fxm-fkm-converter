@@ -11,21 +11,18 @@ function normalizeModel(model: string): string {
 }
 
 // Tabla de equivalencia de Encoders (FXM <-> FKM)
-// Fuente: Manuales de usuario Fagor Automation
+// Fuente: Manuales de usuario Fagor Automation (Ref.1603 y Ref.2403)
 const ENCODER_MAPPING: Record<string, string> = {
   // FXM -> FKM
-  'E1': 'A1', // Encoder incremental
-  'E2': 'A2',
-  'E3': 'A3',
-  'S1': 'C1', // Encoder sinusoidal
-  'S2': 'C2',
+  'E1': 'E3', // Sinusoidal 1 Vpp 1024 ppt (FXM E1 -> FKM E3)
+  'A1': 'A3', // Absoluto Multi-turn SinCos (FXM A1 -> FKM A3)
+  'I0': 'I0', // Incremental TTL 2500 ppt (Igual en ambos)
+  'S1': 'E3', // Variante sinusoidal antigua -> E3
   
   // FKM -> FXM (Bidireccional)
-  'A1': 'E1',
-  'A2': 'E2',
-  'A3': 'E3',
-  'C1': 'S1',
-  'C2': 'S2'
+  'E3': 'E1',
+  'A3': 'A1',
+  // I0 se mapea a sí mismo, no es necesario duplicar si la lógica maneja identidad
 };
 
 // Función para extraer el encoder de un modelo completo
