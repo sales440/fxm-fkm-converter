@@ -4,6 +4,19 @@ import { getEncoderRecommendation, getConnectorRecommendation } from './encoderC
 
 const FAGOR_RED = 'FFDC1E26'; // Hex para #DC1E26
 
+// Helper para cargar imágenes como ArrayBuffer de forma segura
+const loadImageBuffer = async (url: string): Promise<ArrayBuffer | null> => {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) return null;
+    const blob = await response.blob();
+    return await blob.arrayBuffer();
+  } catch (error) {
+    console.warn(`Error loading image ${url}:`, error);
+    return null;
+  }
+};
+
 export async function exportToExcel(comparison: ComparisonResult, language: string = 'es') {
   // Obtener recomendaciones
   const encoderRec = getEncoderRecommendation(comparison.fxm.model);
@@ -28,24 +41,17 @@ export async function exportToExcel(comparison: ComparisonResult, language: stri
   
   let currentRow = 1;
   
-  // Cargar logo de FAGOR
-  try {
-    const logoResponse = await fetch('/fagor-logo.jpg');
-    const logoBlob = await logoResponse.blob();
-    const logoArrayBuffer = await logoBlob.arrayBuffer();
-    
+  // Cargar logo de FAGOR de forma segura
+  const logoBuffer = await loadImageBuffer('/fagor-logo.jpg');
+  if (logoBuffer) {
     const logoId = workbook.addImage({
-      buffer: logoArrayBuffer,
+      buffer: logoBuffer,
       extension: 'jpeg',
     });
-    
-    // Insertar logo en la esquina superior izquierda (A1:B2) - tamaño más pequeño y profesional
     worksheet.addImage(logoId, {
       tl: { col: 0, row: 0 },
       ext: { width: 180, height: 60 }
     });
-  } catch (error) {
-    console.error('Error loading logo:', error);
   }
   
   // Información de contacto (derecha) - Fusionar celdas D1:E3

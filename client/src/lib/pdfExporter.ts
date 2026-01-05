@@ -6,6 +6,28 @@ import { getLogoBase64 } from './logoBase64';
 
 const FAGOR_RED: [number, number, number] = [220, 30, 38]; // RGB para #DC1E26
 
+// Helper para cargar imágenes como Base64
+const loadImageBase64 = (url: string): Promise<string | null> => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'Anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(img, 0, 0);
+        resolve(canvas.toDataURL('image/png'));
+      } else {
+        resolve(null);
+      }
+    };
+    img.onerror = () => resolve(null);
+    img.src = url;
+  });
+};
+
 export async function exportToPDF(comparison: ComparisonResult, language: string = 'es') {
   // Obtener recomendaciones
   const encoderRec = getEncoderRecommendation(comparison.fxm.model);
@@ -256,15 +278,18 @@ export async function exportToPDF(comparison: ComparisonResult, language: string
   const flangeImageHeight = 60;
   const imageSpacing = 10;
   
-  try {
-    // Imagen FXM Flange (izquierda)
-    doc.addImage('/flange-fxm.png', 'PNG', marginLeft, yPos, flangeImageWidth, flangeImageHeight);
-    
-    // Imagen FKM Flange (derecha)
-    doc.addImage('/flange-fkm.png', 'PNG', marginLeft + flangeImageWidth + imageSpacing, yPos, flangeImageWidth, flangeImageHeight);
-  } catch (e) {
-    console.warn('No se pudieron cargar imágenes de bridas:', e);
-  }
+    // Cargar imágenes de bridas de forma asíncrona
+    try {
+      const [fxmFlange, fkmFlange] = await Promise.all([
+        loadImageBase64('/flange-fxm.png'),
+        loadImageBase64('/flange-fkm.png')
+      ]);
+
+      if (fxmFlange) doc.addImage(fxmFlange, 'PNG', marginLeft, yPos, flangeImageWidth, flangeImageHeight);
+      if (fkmFlange) doc.addImage(fkmFlange, 'PNG', marginLeft + flangeImageWidth + imageSpacing, yPos, flangeImageWidth, flangeImageHeight);
+    } catch (e) {
+      console.warn('No se pudieron cargar las imágenes de bridas:', e);
+    }
   
   yPos += flangeImageHeight + 10;
   
