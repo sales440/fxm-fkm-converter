@@ -32,8 +32,15 @@ export function searchFXMMotors(database: MotorDatabase, query: string): Motor[]
   for (const [key, motor] of Object.entries(database.fxm_motors)) {
     const normalizedKey = normalizeModel(key);
     
-    // Búsqueda flexible: coincidencia parcial o exacta
-    if (normalizedKey.includes(normalizedQuery) || normalizedQuery.includes(normalizedKey.substring(0, 10))) {
+    // Búsqueda flexible con soporte de comodines 'X'
+    // Convertimos la clave de la BD en una expresión regular donde 'X' coincide con cualquier dígito/letra
+    const regexPattern = normalizedKey.replace(/X/g, '[A-Z0-9]');
+    const regex = new RegExp('^' + regexPattern); // Anclamos al inicio para mayor precisión
+    
+    // 1. Coincidencia exacta con comodines (ej: FXM3240AXX coincide con FXM3240AE1)
+    // 2. Coincidencia parcial simple (ej: FXM32 coincide con FXM32...)
+    // 3. Coincidencia inversa parcial (ej: FXM3240AE1000 coincide con FXM3240AXX...)
+    if (regex.test(normalizedQuery) || normalizedKey.includes(normalizedQuery) || normalizedQuery.includes(normalizedKey.substring(0, 8))) {
       results.push(motor);
     }
   }
@@ -63,8 +70,15 @@ export function searchFKMMotors(database: MotorDatabase, query: string): Motor[]
   for (const [key, motor] of Object.entries(database.fkm_motors)) {
     const normalizedKey = normalizeModel(key);
     
-    // Búsqueda flexible: coincidencia parcial o exacta
-    if (normalizedKey.includes(normalizedQuery) || normalizedQuery.includes(normalizedKey.substring(0, 10))) {
+    // Búsqueda flexible con soporte de comodines 'X'
+    // Convertimos la clave de la BD en una expresión regular donde 'X' coincide con cualquier dígito/letra
+    const regexPattern = normalizedKey.replace(/X/g, '[A-Z0-9]');
+    const regex = new RegExp('^' + regexPattern); // Anclamos al inicio para mayor precisión
+    
+    // 1. Coincidencia exacta con comodines (ej: FXM3240AXX coincide con FXM3240AE1)
+    // 2. Coincidencia parcial simple (ej: FXM32 coincide con FXM32...)
+    // 3. Coincidencia inversa parcial (ej: FXM3240AE1000 coincide con FXM3240AXX...)
+    if (regex.test(normalizedQuery) || normalizedKey.includes(normalizedQuery) || normalizedQuery.includes(normalizedKey.substring(0, 8))) {
       results.push(motor);
     }
   }
