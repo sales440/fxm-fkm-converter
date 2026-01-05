@@ -1,11 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileDown, FileSpreadsheet } from "lucide-react";
+import { FileDown, FileSpreadsheet, Loader2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { ComparisonResult } from "@/types/motor";
 import { toast } from "sonner";
 import { exportToPDF } from "@/lib/pdfExporter";
 import { exportToExcel } from "@/lib/excelExporter";
+import { useState } from "react";
 import MotorDimensionDiagram from "@/components/MotorDimensionDiagram";
 import { getEncoderRecommendation, getConnectorRecommendation } from "@/lib/encoderConnectorRecommendations";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
@@ -14,32 +15,41 @@ import CableLengthCalculator from "@/components/CableLengthCalculator";
 interface MotorComparisonReportProps {
   comparison: ComparisonResult;
   conversionDirection?: 'FXM_TO_FKM' | 'FKM_TO_FXM';
+  onAddToBatch?: () => void;
 }
 
-export default function MotorComparisonReport({ comparison, conversionDirection = 'FXM_TO_FKM' }: MotorComparisonReportProps) {
+export default function MotorComparisonReport({ comparison, conversionDirection = 'FXM_TO_FKM', onAddToBatch }: MotorComparisonReportProps) {
   const { t, language } = useLanguage();
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [isGeneratingExcel, setIsGeneratingExcel] = useState(false);
   
   // Obtener recomendaciones de encoders y conectores
   const encoderRec = getEncoderRecommendation(comparison.fxm.model);
   const connectorRec = getConnectorRecommendation(comparison.fxm.model, comparison.fkm.model);
   
   const handleDownloadPDF = async () => {
+    setIsGeneratingPDF(true);
     try {
       await exportToPDF(comparison, language);
       toast.success('PDF downloaded successfully');
     } catch (error) {
       console.error('Error exporting PDF:', error);
       toast.error('Error generating PDF');
+    } finally {
+      setIsGeneratingPDF(false);
     }
   };
   
-  const handleDownloadExcel = () => {
+  const handleDownloadExcel = async () => {
+    setIsGeneratingExcel(true);
     try {
-      exportToExcel(comparison, language);
+      await exportToExcel(comparison, language);
       toast.success('Excel downloaded successfully');
     } catch (error) {
       console.error('Error exporting Excel:', error);
       toast.error('Error generating Excel');
+    } finally {
+      setIsGeneratingExcel(false);
     }
   };
   
@@ -74,14 +84,44 @@ export default function MotorComparisonReport({ comparison, conversionDirection 
         <div className="flex items-center justify-between">
           <CardTitle className="text-2xl text-primary">{t('report.title')}</CardTitle>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={handleDownloadPDF} className="border-primary text-primary hover:bg-primary hover:text-white">
-              <FileDown className="h-4 w-4 mr-2" />
-              PDF
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleDownloadPDF} 
+              disabled={isGeneratingPDF}
+              className="border-primary text-primary hover:bg-primary hover:text-white"
+            >
+              {isGeneratingPDF ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <FileDown className="h-4 w-4 mr-2" />
+              )}
+              {isGeneratingPDF ? 'Generando...' : 'PDF'}
             </Button>
-            <Button variant="outline" size="sm" onClick={handleDownloadExcel} className="border-primary text-primary hover:bg-primary hover:text-white">
-              <FileSpreadsheet className="h-4 w-4 mr-2" />
-              Excel
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleDownloadExcel} 
+              disabled={isGeneratingExcel}
+              className="border-primary text-primary hover:bg-primary hover:text-white"
+            >
+              {isGeneratingExcel ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <FileSpreadsheet className="h-4 w-4 mr-2" />
+              )}
+              {isGeneratingExcel ? 'Generando...' : 'Excel'}
             </Button>
+            {onAddToBatch && (
+              <Button 
+                variant="default" 
+                size="sm" 
+                onClick={onAddToBatch}
+                className="bg-primary text-white hover:bg-primary/90"
+              >
+                {language === 'es' ? '+ Agregar a Reporte' : '+ Add to Report'}
+              </Button>
+            )}
           </div>
         </div>
       </CardHeader>

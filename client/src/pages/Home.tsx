@@ -439,14 +439,31 @@ export default function Home() {
           <MotorComparisonReport 
             comparison={comparison}
             conversionDirection={conversionDirection}
+            onAddToBatch={() => {
+              if (comparison) {
+                addToMultiCompare({
+                  motorA: selectedMotorA,
+                  motorB: selectedMotorB,
+                  comparison: comparison,
+                  direction: conversionDirection
+                });
+              }
+            }}
           />
         )}
       </main>
 
       {/* Panel de Comparación Múltiple */}
       <MultiComparePanel 
-        onExportConsolidated={() => {
-          exportConsolidatedExcel(multiCompareItems, language);
+        onExportPDF={async () => {
+          const { exportToPDF } = await import('@/lib/pdfExporter');
+          // Extraer solo los resultados de comparación para el PDF
+          const comparisons = multiCompareItems.map(item => item.comparison);
+          await exportToPDF(comparisons, language);
+        }}
+        onExportExcel={async () => {
+          const { exportConsolidatedExcel } = await import('@/utils/consolidatedExcelExporter');
+          await exportConsolidatedExcel(multiCompareItems, language);
         }}
       />
 

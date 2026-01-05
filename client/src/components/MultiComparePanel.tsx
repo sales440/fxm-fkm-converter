@@ -4,23 +4,47 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   X, 
-  Download,
+  FileDown,
+  FileSpreadsheet,
   Layers,
   Trash2,
-  ArrowRight
+  ArrowRight,
+  Loader2
 } from 'lucide-react';
 import { useMultiCompare } from '@/contexts/MultiCompareContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useState } from 'react';
 
 interface MultiComparePanelProps {
-  onExportConsolidated: () => void;
+  onExportPDF: () => Promise<void>;
+  onExportExcel: () => Promise<void>;
 }
 
-export default function MultiComparePanel({ onExportConsolidated }: MultiComparePanelProps) {
+export default function MultiComparePanel({ onExportPDF, onExportExcel }: MultiComparePanelProps) {
   const { items, removeItem, clearAll, itemCount } = useMultiCompare();
   const { t } = useLanguage();
+  const [isPdfLoading, setIsPdfLoading] = useState(false);
+  const [isExcelLoading, setIsExcelLoading] = useState(false);
 
   if (itemCount === 0) return null;
+
+  const handlePdfExport = async () => {
+    setIsPdfLoading(true);
+    try {
+      await onExportPDF();
+    } finally {
+      setIsPdfLoading(false);
+    }
+  };
+
+  const handleExcelExport = async () => {
+    setIsExcelLoading(true);
+    try {
+      await onExportExcel();
+    } finally {
+      setIsExcelLoading(false);
+    }
+  };
 
   return (
     <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-40 w-full max-w-4xl px-4">
@@ -41,12 +65,22 @@ export default function MultiComparePanel({ onExportConsolidated }: MultiCompare
             
             <div className="flex items-center gap-2">
               <Button
-                onClick={onExportConsolidated}
+                onClick={handlePdfExport}
+                className="bg-red-600 hover:bg-red-700 text-white"
+                size="sm"
+                disabled={isPdfLoading}
+              >
+                {isPdfLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FileDown className="h-4 w-4 mr-2" />}
+                PDF
+              </Button>
+              <Button
+                onClick={handleExcelExport}
                 className="bg-green-600 hover:bg-green-700 text-white"
                 size="sm"
+                disabled={isExcelLoading}
               >
-                <Download className="h-4 w-4 mr-2" />
-                {t('exportConsolidated')}
+                {isExcelLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FileSpreadsheet className="h-4 w-4 mr-2" />}
+                Excel
               </Button>
               <Button
                 onClick={clearAll}
