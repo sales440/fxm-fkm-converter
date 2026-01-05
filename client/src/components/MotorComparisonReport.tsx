@@ -448,7 +448,7 @@ export default function MotorComparisonReport({ comparison, conversionDirection 
             <div className="mb-6">
               <h3 className="text-lg font-bold text-fagor-red mb-3 flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5" />
-                Encoders
+                Sistema de Captación (Encoder)
               </h3>
               <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
@@ -473,9 +473,13 @@ export default function MotorComparisonReport({ comparison, conversionDirection 
                 {/* Diagrama comparativo de encoders */}
                 <div className="mt-4">
                   <img 
-                    src="/encoder-comparison.png" 
+                    src="/images/encoder-comparison.png" 
                     alt="Encoder Comparison Diagram" 
                     className="w-full rounded-lg border border-slate-300 shadow-sm"
+                    onError={(e) => {
+                      // Fallback si la imagen no existe
+                      e.currentTarget.style.display = 'none';
+                    }}
                   />
                 </div>
               </div>
