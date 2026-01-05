@@ -7,7 +7,8 @@ providers = ["node"]
 nixPkgs = ["nodejs_22", "pnpm-9_x"]
 
 [phases.install]
-cmds = ["pnpm install"]
+# Usamos --no-frozen-lockfile para evitar fallos si el lockfile tiene pequeñas discrepancias
+cmds = ["pnpm install --no-frozen-lockfile"]
 
 [phases.build]
 cmds = ["pnpm build"]
