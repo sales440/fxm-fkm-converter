@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,12 +25,13 @@ import MultiComparePanel from "@/components/MultiComparePanel";
 import { useMultiCompare } from "@/contexts/MultiCompareContext";
 import { QRScanner } from "@/components/QRScanner";
 import { exportConsolidatedExcel } from "@/utils/consolidatedExcelExporter";
+import staticDatabase from "@/data/motor_database.json";
 
 export default function Home() {
   const { language, setLanguage, t } = useLanguage();
   const { addToHistory } = useConversionHistory();
   const { addItem: addToMultiCompare, hasItem: hasInMultiCompare, items: multiCompareItems } = useMultiCompare();
-  const [database, setDatabase] = useState<MotorDatabase | null>(null);
+  const [database] = useState<MotorDatabase>(staticDatabase as unknown as MotorDatabase);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchType, setSearchType] = useState<'FXM' | 'FKM' | 'AUTO'>('AUTO');
   const [selectedMotorA, setSelectedMotorA] = useState<Motor | null>(null); // Motor origen
@@ -43,15 +44,7 @@ export default function Home() {
   const [conversionDirection, setConversionDirection] = useState<'FXM_TO_FKM' | 'FKM_TO_FXM'>('FXM_TO_FKM');
   const [showQRScanner, setShowQRScanner] = useState(false);
   
-  // Cargar base de datos
-  useEffect(() => {
-    fetch('/motor_database.json')
-      .then(res => res.json())
-      .then(data => {
-        setDatabase(data);
-      })
-      .catch(err => console.error('Error loading database:', err));
-  }, []);
+
   
   const handleSearch = () => {
     if (!database) return;
