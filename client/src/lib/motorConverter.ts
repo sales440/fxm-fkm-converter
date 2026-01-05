@@ -7,7 +7,7 @@ import type { MotorDatabase, Motor, ComparisonResult, DimensionComparison, Elect
 function normalizeModel(model: string): string {
   let normalized = model
     .toUpperCase()
-    .replace(/\s+/g, '') // Eliminar espacios
+    .replace(/\s+/g, '.') // Convertir espacios a puntos
     .replace(/-/g, '.') // Convertir guiones a puntos
     .replace(/\.+/g, '.') // Normalizar puntos múltiples
     .replace(/[xX]{2,}/g, 'XX'); // Normalizar xx, XX, etc.
