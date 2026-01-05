@@ -1,1 +1,1 @@
-web: pnpm start
+web: npx serve -s dist/public -l $PORT
