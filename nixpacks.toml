@@ -1,5 +1,5 @@
 # Nixpacks configuration for Railway
-# Enforcing Node.js environment and explicit start command
+# Solo define entorno y build. El arranque se maneja vía Procfile.
 
 providers = ["node"]
 
@@ -7,11 +7,10 @@ providers = ["node"]
 nixPkgs = ["nodejs_22", "pnpm-9_x"]
 
 [phases.install]
-# Usamos --no-frozen-lockfile para evitar fallos si el lockfile tiene pequeñas discrepancias
+# Mantenemos --no-frozen-lockfile por seguridad
 cmds = ["pnpm install --no-frozen-lockfile"]
 
 [phases.build]
 cmds = ["pnpm build"]
 
-[start]
-cmd = "pnpm start"
+# Eliminada sección [start] para evitar conflictos. Procfile tiene prioridad.
