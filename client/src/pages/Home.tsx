@@ -236,7 +236,7 @@ export default function Home() {
           </p>
           {/* Debug Indicator (Forced Rebuild) */}
           <div className="text-xs text-gray-400 mt-2">
-            System Status: {database ? "Ready ✅" : "Error ❌"} | v2.9 (FXM11 Fix)
+            System Status: {database ? "Ready ✅" : "Error ❌"} | v2.10 (UI Fixes)
           </div>
         </div>
 
@@ -269,17 +269,19 @@ export default function Home() {
           </CardHeader>
           <CardContent className="pt-6">
             <div className="flex gap-4 mb-4">
-              <div className="relative flex-1">
+              <div className="relative flex-1 flex gap-2">
                 <Input
                   type="text"
                   placeholder={t('searchPlaceholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  className="w-full border-primary/30 focus:border-primary pr-10"
+                  className="w-full border-primary/30 focus:border-primary"
                 />
                 {searchQuery && (
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={() => {
                       setSearchQuery('');
                       setSearchResults([]);
@@ -289,11 +291,11 @@ export default function Home() {
                       setSelectedMotorB(null);
                       setComparison(null);
                     }}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    title="Limpiar búsqueda"
+                    className="text-gray-500 hover:text-red-500 hover:bg-red-50"
+                    title="Limpiar búsqueda / Clear search"
                   >
-                    <X className="w-4 h-4" />
-                  </button>
+                    <X className="w-5 h-5" />
+                  </Button>
                 )}
               </div>
               <Button 
