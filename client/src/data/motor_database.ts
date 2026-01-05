@@ -486,7 +486,27 @@ export const motorDatabase: MotorDatabase = {
             "m": 0,
             "l": 25
         },
-        "pcal": 0.4
+        "pcal": 0.4,
+        "recommended_drive": "AXD 1.08"
+    },
+    "FXM 11.30H.xx.x00": {
+        "model": "FXM 11.30H.xx.x00",
+        "mo": 1.2,
+        "mn": 1.1,
+        "mp": 6,
+        "rpm": 3000,
+        "j": 1.2,
+        "io": 0.6,
+        "dimensions": {
+            "ac": 0,
+            "n": 0,
+            "d": 0,
+            "e": 0,
+            "m": 0,
+            "l": 25
+        },
+        "pcal": 0.4,
+        "recommended_drive": "AXD 1.08"
     },
     "FXM 12.30A.xx.x00": {
         "model": "FXM 12.30A.xx.x00",

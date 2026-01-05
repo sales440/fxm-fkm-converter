@@ -73,16 +73,31 @@ export function searchFXMMotors(database: MotorDatabase, query: string): Motor[]
     // Si la query es "FXM1130AE1010", debe encontrar "FXM1130AXX..."
     
     // Limpiamos 'X' de la clave normalizada para comparar la raíz
+    // IMPORTANTE: Eliminamos también los últimos dígitos (opciones) de la clave de BD para permitir variantes (ej: .010 vs .000)
+    // FXM1130AXXX00 -> FXM1130A
+    // Asumimos que los últimos 3 caracteres son opciones (ej: 000, 010) y los anteriores 2 son encoder (XX)
+    // La clave normalizada FXM1130AXXX00 tiene longitud 13. Queremos los primeros 8 (FXM1130A).
+    // Pero la longitud varía. Estrategia: Buscar la subcadena común más larga.
+    
     const cleanKeyRoot = normalizedKey.replace(/X/g, '');
     const cleanQuery = normalizedQuery;
     
+    // Lógica mejorada v2.1:
+    // 1. Coincidencia de raíz (Base del motor)
+    // Si la clave de BD (sin X y sin sufijo numérico final) está contenida en la query
+    // Ej: BD="FXM1130A00" -> Raíz="FXM1130A" (quitando 2 chars finales)
+    // Query="FXM1130AE1010" -> Contiene "FXM1130A" -> MATCH
+    
+    const keyRootBase = cleanKeyRoot.length > 3 ? cleanKeyRoot.slice(0, -2) : cleanKeyRoot;
+    const matchRoot = cleanQuery.includes(keyRootBase);
+
+    // 2. Coincidencia parcial estándar
     const matchPartial = cleanKeyRoot.startsWith(cleanQuery) || cleanQuery.startsWith(cleanKeyRoot);
     
-    // 3. Coincidencia laxa para entradas muy específicas o con formato extraño
-    // Si la clave normalizada está contenida en la query o viceversa
-    const matchLoose = normalizedKey.includes(normalizedQuery) || normalizedQuery.includes(cleanKeyRoot);
+    // 3. Coincidencia laxa
+    const matchLoose = normalizedKey.includes(normalizedQuery);
 
-    if (matchRegex || matchPartial || matchLoose) {
+    if (matchRegex || matchPartial || matchLoose || matchRoot) {
       // Si encontramos un resultado genérico (con 'xx'), intentamos personalizarlo
       // con el encoder equivalente correcto
       const userEncoder = extractEncoder(query);
@@ -142,16 +157,31 @@ export function searchFKMMotors(database: MotorDatabase, query: string): Motor[]
     // Si la query es "FXM1130AE1010", debe encontrar "FXM1130AXX..."
     
     // Limpiamos 'X' de la clave normalizada para comparar la raíz
+    // IMPORTANTE: Eliminamos también los últimos dígitos (opciones) de la clave de BD para permitir variantes (ej: .010 vs .000)
+    // FXM1130AXXX00 -> FXM1130A
+    // Asumimos que los últimos 3 caracteres son opciones (ej: 000, 010) y los anteriores 2 son encoder (XX)
+    // La clave normalizada FXM1130AXXX00 tiene longitud 13. Queremos los primeros 8 (FXM1130A).
+    // Pero la longitud varía. Estrategia: Buscar la subcadena común más larga.
+    
     const cleanKeyRoot = normalizedKey.replace(/X/g, '');
     const cleanQuery = normalizedQuery;
     
+    // Lógica mejorada v2.1:
+    // 1. Coincidencia de raíz (Base del motor)
+    // Si la clave de BD (sin X y sin sufijo numérico final) está contenida en la query
+    // Ej: BD="FXM1130A00" -> Raíz="FXM1130A" (quitando 2 chars finales)
+    // Query="FXM1130AE1010" -> Contiene "FXM1130A" -> MATCH
+    
+    const keyRootBase = cleanKeyRoot.length > 3 ? cleanKeyRoot.slice(0, -2) : cleanKeyRoot;
+    const matchRoot = cleanQuery.includes(keyRootBase);
+
+    // 2. Coincidencia parcial estándar
     const matchPartial = cleanKeyRoot.startsWith(cleanQuery) || cleanQuery.startsWith(cleanKeyRoot);
     
-    // 3. Coincidencia laxa para entradas muy específicas o con formato extraño
-    // Si la clave normalizada está contenida en la query o viceversa
-    const matchLoose = normalizedKey.includes(normalizedQuery) || normalizedQuery.includes(cleanKeyRoot);
+    // 3. Coincidencia laxa
+    const matchLoose = normalizedKey.includes(normalizedQuery);
 
-    if (matchRegex || matchPartial || matchLoose) {
+    if (matchRegex || matchPartial || matchLoose || matchRoot) {
       // Si encontramos un resultado genérico (con 'xx'), intentamos personalizarlo
       // con el encoder equivalente correcto
       const userEncoder = extractEncoder(query);
