@@ -232,6 +232,10 @@ export default function Home() {
           <p className="text-sm text-slate-500 mt-2">
             {t('bidirectionalSearch')}
           </p>
+          {/* Debug Indicator (Forced Rebuild) */}
+          <div className="text-xs text-gray-400 mt-2">
+            System Status: {database ? "Ready ✅" : "Loading Data... ❌"} | v1.2
+          </div>
         </div>
 
         {/* Sección de Búsqueda */}
