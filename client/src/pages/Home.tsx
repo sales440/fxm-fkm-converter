@@ -25,13 +25,13 @@ import MultiComparePanel from "@/components/MultiComparePanel";
 import { useMultiCompare } from "@/contexts/MultiCompareContext";
 import { QRScanner } from "@/components/QRScanner";
 import { exportConsolidatedExcel } from "@/utils/consolidatedExcelExporter";
-import staticDatabase from "@/data/motor_database.json";
+import { motorDatabase } from "@/data/motor_database";
 
 export default function Home() {
   const { language, setLanguage, t } = useLanguage();
   const { addToHistory } = useConversionHistory();
   const { addItem: addToMultiCompare, hasItem: hasInMultiCompare, items: multiCompareItems } = useMultiCompare();
-  const [database] = useState<MotorDatabase>(staticDatabase as unknown as MotorDatabase);
+  const [database] = useState<MotorDatabase>(motorDatabase);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchType, setSearchType] = useState<'FXM' | 'FKM' | 'AUTO'>('AUTO');
   const [selectedMotorA, setSelectedMotorA] = useState<Motor | null>(null); // Motor origen
@@ -234,7 +234,7 @@ export default function Home() {
           </p>
           {/* Debug Indicator (Forced Rebuild) */}
           <div className="text-xs text-gray-400 mt-2">
-            System Status: {database ? "Ready ✅" : "Loading Data... ❌"} | v1.2
+            System Status: {database ? "Ready ✅" : "Error ❌"} | v1.3 (TS Embedded)
           </div>
         </div>
 
