@@ -609,7 +609,7 @@ export default function MotorComparisonReport({ comparison, conversionDirection 
             {/* Encoders Section */}
             {encoderRec && (
               <div>
-                <h3 className="text-lg font-bold text-fagor-red mb-4 border-b-2 border-fagor-red pb-2">
+                <h3 className="text-lg font-bold text-red-600 mb-4 border-b-2 border-red-600 pb-2">
                   Encoders
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -620,7 +620,7 @@ export default function MotorComparisonReport({ comparison, conversionDirection 
                     </div>
                     <div>
                       <p className="text-sm font-bold text-slate-900">Recommended FKM Encoder:</p>
-                      <p className="text-lg font-bold text-fagor-red">{encoderRec.bestMatch}</p>
+                      <p className="text-lg font-bold text-red-600">{encoderRec.bestMatch}</p>
                     </div>
                     <div>
                       <p className="text-sm font-bold text-slate-900">Alternative Options:</p>
@@ -630,18 +630,32 @@ export default function MotorComparisonReport({ comparison, conversionDirection 
                       {encoderRec.notes}
                     </div>
                   </div>
-                  <div className="flex items-center justify-center bg-white p-2 rounded border border-slate-200">
-                    {/* Placeholder for Encoder Image */}
-                    <div className="text-center">
-                      <img 
-                        src="/images/fkm-encoder-generic.png" 
-                        alt="FKM Encoder" 
-                        className="max-h-32 mx-auto mb-2"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                          e.currentTarget.parentElement!.innerHTML = '<div class="h-32 w-32 bg-slate-100 rounded flex items-center justify-center text-slate-400 text-xs">Encoder Image</div>';
-                        }}
-                      />
+                  <div className="flex items-center justify-center bg-slate-50 p-4 rounded border border-slate-200">
+                    <div className="text-center w-full">
+                      {/* SVG Encoder Representation */}
+                      <svg viewBox="0 0 100 100" className="w-32 h-32 mx-auto mb-2">
+                        {/* Housing */}
+                        <circle cx="50" cy="50" r="40" fill="#f8fafc" stroke="#64748b" strokeWidth="2" />
+                        <circle cx="50" cy="50" r="35" fill="none" stroke="#cbd5e1" strokeWidth="1" strokeDasharray="4 2" />
+                        
+                        {/* Shaft/Hub */}
+                        <circle cx="50" cy="50" r="10" fill="#e2e8f0" stroke="#475569" strokeWidth="2" />
+                        <circle cx="50" cy="50" r="3" fill="#475569" />
+                        
+                        {/* Connector */}
+                        <rect x="80" y="40" width="15" height="20" rx="2" fill="#334155" />
+                        <line x1="50" y1="50" x2="80" y2="50" stroke="#64748b" strokeWidth="2" />
+                        
+                        {/* Mounting Holes */}
+                        <circle cx="50" cy="15" r="2" fill="#94a3b8" />
+                        <circle cx="50" cy="85" r="2" fill="#94a3b8" />
+                        <circle cx="15" cy="50" r="2" fill="#94a3b8" />
+                        <circle cx="85" cy="50" r="2" fill="#94a3b8" />
+                        
+                        {/* Label */}
+                        <text x="50" y="65" textAnchor="middle" fontSize="8" fill="#dc2626" fontWeight="bold">FAGOR</text>
+                        <text x="50" y="75" textAnchor="middle" fontSize="6" fill="#64748b">{encoderRec.bestMatch}</text>
+                      </svg>
                       <p className="text-xs text-slate-500">FKM Encoder Series</p>
                     </div>
                   </div>

@@ -13,13 +13,28 @@ export default function MotorDimensionDiagram({ fxm, fkm }: MotorDimensionDiagra
   const scale = 2;
   const baseX = 50;
   
-  const fxmL = (fxm.dimensions.l || 200) / scale;
-  const fxmAC = (fxm.dimensions.ac || 100) / scale;
-  const fxmD = (fxm.dimensions.d || 20) / scale;
+  // Fallback values if dimensions are 0 or missing to ensure diagram is always visible
+  const fxmL_raw = fxm.dimensions.l || 200;
+  const fxmAC_raw = fxm.dimensions.ac || 130;
+  const fxmD_raw = fxm.dimensions.d || 24;
+  const fxmE_raw = fxm.dimensions.e || 130;
+  const fxmM_raw = fxm.dimensions.m || 165;
+  const fxmN_raw = fxm.dimensions.n || 110;
+
+  const fkmL_raw = fkm.dimensions.l || 200;
+  const fkmAC_raw = fkm.dimensions.ac || 130;
+  const fkmD_raw = fkm.dimensions.d || 24;
+  const fkmE_raw = fkm.dimensions.e || 130;
+  const fkmM_raw = fkm.dimensions.m || 165;
+  const fkmN_raw = fkm.dimensions.n || 110;
+
+  const fxmL = fxmL_raw / scale;
+  const fxmAC = fxmAC_raw / scale;
+  const fxmD = fxmD_raw / scale;
   
-  const fkmL = (fkm.dimensions.l || 200) / scale;
-  const fkmAC = (fkm.dimensions.ac || 100) / scale;
-  const fkmD = (fkm.dimensions.d || 20) / scale;
+  const fkmL = fkmL_raw / scale;
+  const fkmAC = fkmAC_raw / scale;
+  const fkmD = fkmD_raw / scale;
   
   return (
     <div className="bg-white p-6 rounded-lg border-2 border-primary/20">
@@ -72,27 +87,27 @@ export default function MotorDimensionDiagram({ fxm, fkm }: MotorDimensionDiagra
               <circle cx="100" cy="100" r="2" fill="#94A3B8" />
               
               {/* Bolt Circle (M) */}
-              <circle cx="100" cy="100" r={(fxm.dimensions.m || 100) / 2} fill="none" stroke="#94A3B8" strokeDasharray="4 4" />
+              <circle cx="100" cy="100" r={fxmM_raw / 2} fill="none" stroke="#94A3B8" strokeDasharray="4 4" />
               
               {/* Flange Square (E) */}
               <rect 
-                x={100 - (fxm.dimensions.e || 100)/2} 
-                y={100 - (fxm.dimensions.e || 100)/2} 
-                width={fxm.dimensions.e || 100} 
-                height={fxm.dimensions.e || 100} 
+                x={100 - fxmE_raw/2} 
+                y={100 - fxmE_raw/2} 
+                width={fxmE_raw} 
+                height={fxmE_raw} 
                 fill="none" 
                 stroke="#2563EB" 
                 strokeWidth="2" 
               />
               
               {/* Pilot (N) */}
-              <circle cx="100" cy="100" r={(fxm.dimensions.n || 80) / 2} fill="#E0F2FE" stroke="#2563EB" strokeWidth="1" />
+              <circle cx="100" cy="100" r={fxmN_raw / 2} fill="#E0F2FE" stroke="#2563EB" strokeWidth="1" />
               
               {/* Bolt Holes (4x) */}
-              <circle cx={100 - (fxm.dimensions.m || 100)/2 * 0.707} cy={100 - (fxm.dimensions.m || 100)/2 * 0.707} r="4" fill="white" stroke="#2563EB" />
-              <circle cx={100 + (fxm.dimensions.m || 100)/2 * 0.707} cy={100 - (fxm.dimensions.m || 100)/2 * 0.707} r="4" fill="white" stroke="#2563EB" />
-              <circle cx={100 - (fxm.dimensions.m || 100)/2 * 0.707} cy={100 + (fxm.dimensions.m || 100)/2 * 0.707} r="4" fill="white" stroke="#2563EB" />
-              <circle cx={100 + (fxm.dimensions.m || 100)/2 * 0.707} cy={100 + (fxm.dimensions.m || 100)/2 * 0.707} r="4" fill="white" stroke="#2563EB" />
+              <circle cx={100 - fxmM_raw/2 * 0.707} cy={100 - fxmM_raw/2 * 0.707} r="4" fill="white" stroke="#2563EB" />
+              <circle cx={100 + fxmM_raw/2 * 0.707} cy={100 - fxmM_raw/2 * 0.707} r="4" fill="white" stroke="#2563EB" />
+              <circle cx={100 - fxmM_raw/2 * 0.707} cy={100 + fxmM_raw/2 * 0.707} r="4" fill="white" stroke="#2563EB" />
+              <circle cx={100 + fxmM_raw/2 * 0.707} cy={100 + fxmM_raw/2 * 0.707} r="4" fill="white" stroke="#2563EB" />
 
               {/* Labels */}
               <text x="100" y="190" textAnchor="middle" fontSize="10" fill="#64748B">E = {fxm.dimensions.e}mm</text>
@@ -147,27 +162,27 @@ export default function MotorDimensionDiagram({ fxm, fkm }: MotorDimensionDiagra
               <circle cx="100" cy="100" r="2" fill="#94A3B8" />
               
               {/* Bolt Circle (M) */}
-              <circle cx="100" cy="100" r={(fkm.dimensions.m || 100) / 2} fill="none" stroke="#94A3B8" strokeDasharray="4 4" />
+              <circle cx="100" cy="100" r={fkmM_raw / 2} fill="none" stroke="#94A3B8" strokeDasharray="4 4" />
               
               {/* Flange Square (E) */}
               <rect 
-                x={100 - (fkm.dimensions.e || 100)/2} 
-                y={100 - (fkm.dimensions.e || 100)/2} 
-                width={fkm.dimensions.e || 100} 
-                height={fkm.dimensions.e || 100} 
+                x={100 - fkmE_raw/2} 
+                y={100 - fkmE_raw/2} 
+                width={fkmE_raw} 
+                height={fkmE_raw} 
                 fill="none" 
                 stroke="#DC1E26" 
                 strokeWidth="2" 
               />
               
               {/* Pilot (N) */}
-              <circle cx="100" cy="100" r={(fkm.dimensions.n || 80) / 2} fill="#FEF2F2" stroke="#DC1E26" strokeWidth="1" />
+              <circle cx="100" cy="100" r={fkmN_raw / 2} fill="#FEF2F2" stroke="#DC1E26" strokeWidth="1" />
               
               {/* Bolt Holes (4x) */}
-              <circle cx={100 - (fkm.dimensions.m || 100)/2 * 0.707} cy={100 - (fkm.dimensions.m || 100)/2 * 0.707} r="4" fill="white" stroke="#DC1E26" />
-              <circle cx={100 + (fkm.dimensions.m || 100)/2 * 0.707} cy={100 - (fkm.dimensions.m || 100)/2 * 0.707} r="4" fill="white" stroke="#DC1E26" />
-              <circle cx={100 - (fkm.dimensions.m || 100)/2 * 0.707} cy={100 + (fkm.dimensions.m || 100)/2 * 0.707} r="4" fill="white" stroke="#DC1E26" />
-              <circle cx={100 + (fkm.dimensions.m || 100)/2 * 0.707} cy={100 + (fkm.dimensions.m || 100)/2 * 0.707} r="4" fill="white" stroke="#DC1E26" />
+              <circle cx={100 - fkmM_raw/2 * 0.707} cy={100 - fkmM_raw/2 * 0.707} r="4" fill="white" stroke="#DC1E26" />
+              <circle cx={100 + fkmM_raw/2 * 0.707} cy={100 - fkmM_raw/2 * 0.707} r="4" fill="white" stroke="#DC1E26" />
+              <circle cx={100 - fkmM_raw/2 * 0.707} cy={100 + fkmM_raw/2 * 0.707} r="4" fill="white" stroke="#DC1E26" />
+              <circle cx={100 + fkmM_raw/2 * 0.707} cy={100 + fkmM_raw/2 * 0.707} r="4" fill="white" stroke="#DC1E26" />
 
               {/* Labels */}
               <text x="100" y="190" textAnchor="middle" fontSize="10" fill="#64748B">E = {fkm.dimensions.e}mm</text>
