@@ -76,9 +76,54 @@ export default function MotorComparisonReport({ comparison, conversionDirection 
     if (diff < 0) return 'text-primary';
     return 'text-slate-600';
   };
+
+  // Detectar si es una excepción de micromotor (< 2.0 Nm) con alta diferencia de torque (> 30%)
+  const isMicroMotorException = comparison.fxm.mo !== null && 
+                                comparison.fxm.mo < 2.0 && 
+                                comparison.differences.electrical.mo.percent !== null && 
+                                Math.abs(comparison.differences.electrical.mo.percent) > 30;
   
   return (
     <>
+    {isMicroMotorException && (
+      <div className="mb-6 bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r shadow-sm">
+        <div className="flex items-start">
+          <div className="flex-shrink-0">
+            <AlertCircle className="h-6 w-6 text-amber-600" />
+          </div>
+          <div className="ml-3">
+            <h3 className="text-lg font-bold text-amber-800">
+              {language === 'es' ? 'ADVERTENCIA: Diferencia Técnica Significativa' : 'WARNING: Significant Technical Difference'}
+            </h3>
+            <div className="mt-2 text-sm text-amber-700 space-y-2">
+              <p>
+                {language === 'es' 
+                  ? 'El motor equivalente seleccionado presenta diferencias técnicas importantes respecto al original:' 
+                  : 'The selected equivalent motor presents significant technical differences compared to the original:'}
+              </p>
+              <ul className="list-disc list-inside font-medium ml-2">
+                <li>
+                  Torque (Mo): {formatPercent(comparison.differences.electrical.mo.percent)} 
+                  ({formatValue(comparison.fxm.mo, 'Nm')} → {formatValue(comparison.fkm.mo, 'Nm')})
+                </li>
+                {comparison.differences.electrical.rpm.diff !== 0 && (
+                  <li>
+                    Speed (RPM): {formatPercent(comparison.differences.electrical.rpm.percent)}
+                    ({formatValue(comparison.fxm.rpm, 'RPM')} → {formatValue(comparison.fkm.rpm, 'RPM')})
+                  </li>
+                )}
+              </ul>
+              <p className="font-bold mt-2">
+                {language === 'es'
+                  ? 'NOTA: Este cambio se realiza bajo riesgo y decisión exclusiva del usuario. Verifique que la aplicación mecánica soporte el incremento de par y velocidad.'
+                  : 'NOTE: This change is made at the user\'s sole risk and discretion. Verify that the mechanical application can support the increased torque and speed.'}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+
     <Card className="border-t-4 border-t-primary">
       <CardHeader className="bg-gradient-to-r from-primary/10 to-primary/5">
         <div className="flex items-center justify-between">
@@ -232,17 +277,66 @@ export default function MotorComparisonReport({ comparison, conversionDirection 
                 </tr>
                 {/* Recommended Drive Row */}
                 <tr className="border-b border-slate-100 hover:bg-slate-50 bg-blue-50/30">
-                  <td className="py-3 px-4 text-slate-700 font-bold">Recommended Drive</td>
+                  <td className="py-3 px-4 text-slate-700 font-bold">Recommended Drive (AXD)</td>
                   <td className="text-right py-3 px-4 font-bold text-blue-700">{comparison.fxm.recommended_drive || '-'}</td>
                   <td className="text-right py-3 px-4 font-bold text-primary">{comparison.fkm.recommended_drive || '-'}</td>
                   <td className="text-right py-3 px-4 text-slate-500 italic" colSpan={2}>
                     {comparison.fxm.recommended_drive !== comparison.fkm.recommended_drive ? 
-                      (comparison.fkm.recommended_drive ? 'Check Drive Compatibility' : '-') : 
-                      'Compatible'}
+                      (comparison.fkm.recommended_drive ? (language === 'es' ? 'Verificar Compatibilidad' : 'Check Compatibility') : '-') : 
+                      (language === 'es' ? 'Compatible' : 'Compatible')}
                   </td>
                 </tr>
               </tbody>
             </table>
+          </div>
+        </div>
+
+        {/* Drive Compatibility Table */}
+        <div className="mt-6">
+          <h3 className="text-lg font-bold mb-4 text-primary bg-primary/10 px-4 py-2 rounded">
+            {language === 'es' ? 'Compatibilidad de Drives (AXD)' : 'Drive Compatibility (AXD)'}
+          </h3>
+          <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-200">
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-bold text-blue-700 mb-2 border-b border-blue-200 pb-1">FXM Drive (Original)</h4>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-slate-600">Model:</span>
+                  <span className="font-bold text-lg">{comparison.fxm.recommended_drive || 'N/A'}</span>
+                </div>
+                <p className="text-xs text-slate-500 mt-1">
+                  {language === 'es' 
+                    ? 'Drive original recomendado para el motor FXM.' 
+                    : 'Original recommended drive for the FXM motor.'}
+                </p>
+              </div>
+              <div>
+                <h4 className="font-bold text-primary mb-2 border-b border-primary/20 pb-1">FKM Drive (New)</h4>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-slate-600">Model:</span>
+                  <span className="font-bold text-lg">{comparison.fkm.recommended_drive || 'N/A'}</span>
+                </div>
+                <p className="text-xs text-slate-500 mt-1">
+                  {language === 'es' 
+                    ? 'Drive recomendado para el nuevo motor FKM.' 
+                    : 'Recommended drive for the new FKM motor.'}
+                </p>
+              </div>
+            </div>
+            
+            {comparison.fxm.recommended_drive && comparison.fkm.recommended_drive && comparison.fxm.recommended_drive !== comparison.fkm.recommended_drive && (
+              <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded text-sm text-amber-800 flex gap-2 items-start">
+                <AlertCircle className="h-5 w-5 flex-shrink-0 text-amber-600" />
+                <div>
+                  <span className="font-bold block mb-1">
+                    {language === 'es' ? '¡Atención! Cambio de Drive Requerido' : 'Attention! Drive Change Required'}
+                  </span>
+                  {language === 'es'
+                    ? `El motor FKM requiere un drive diferente (${comparison.fkm.recommended_drive}) al original. Verifique si su drive actual (${comparison.fxm.recommended_drive}) es configurable o necesita ser reemplazado.`
+                    : `The FKM motor requires a different drive (${comparison.fkm.recommended_drive}) than the original. Verify if your current drive (${comparison.fxm.recommended_drive}) is configurable or needs replacement.`}
+                </div>
+              </div>
+            )}
           </div>
         </div>
         
