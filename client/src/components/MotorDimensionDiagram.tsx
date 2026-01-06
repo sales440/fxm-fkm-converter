@@ -12,7 +12,6 @@ export default function MotorDimensionDiagram({ fxm, fkm }: MotorDimensionDiagra
   // Escala para visualización
   const scale = 2;
   const baseX = 50;
-  const baseY = 150;
   
   const fxmL = (fxm.dimensions.l || 200) / scale;
   const fxmAC = (fxm.dimensions.ac || 100) / scale;
@@ -30,244 +29,151 @@ export default function MotorDimensionDiagram({ fxm, fkm }: MotorDimensionDiagra
         {/* Diagrama FXM */}
         <div>
           <h4 className="text-center font-bold text-blue-700 mb-2">FXM {fxm.model}</h4>
-          <svg viewBox="0 0 400 300" className="w-full border border-slate-200 bg-slate-50">
-            {/* Motor body */}
-            <rect
-              x={baseX}
-              y={baseY - fxmAC / 2}
-              width={fxmL}
-              height={fxmAC}
-              fill="#4A90E2"
-              stroke="#2563EB"
-              strokeWidth="2"
-            />
-            
-            {/* Shaft */}
-            <rect
-              x={baseX + fxmL}
-              y={baseY - fxmD / 2}
-              width={fxmD * 2}
-              height={fxmD}
-              fill="#94A3B8"
-              stroke="#475569"
-              strokeWidth="2"
-            />
-            
-            {/* Dimensiones */}
-            {/* Longitud L */}
-            <line
-              x1={baseX}
-              y1={baseY + fxmAC / 2 + 20}
-              x2={baseX + fxmL}
-              y2={baseY + fxmAC / 2 + 20}
-              stroke="#DC1E26"
-              strokeWidth="2"
-              markerEnd="url(#arrowred)"
-            />
-            <line
-              x1={baseX}
-              y1={baseY + fxmAC / 2 + 15}
-              x2={baseX}
-              y2={baseY + fxmAC / 2 + 25}
-              stroke="#DC1E26"
-              strokeWidth="2"
-            />
-            <line
-              x1={baseX + fxmL}
-              y1={baseY + fxmAC / 2 + 15}
-              x2={baseX + fxmL}
-              y2={baseY + fxmAC / 2 + 25}
-              stroke="#DC1E26"
-              strokeWidth="2"
-            />
-            <text
-              x={baseX + fxmL / 2}
-              y={baseY + fxmAC / 2 + 40}
-              textAnchor="middle"
-              fill="#DC1E26"
-              fontSize="12"
-              fontWeight="bold"
-            >
-              L = {fxm.dimensions.l} mm
-            </text>
-            
-            {/* Altura AC */}
-            <line
-              x1={baseX - 20}
-              y1={baseY - fxmAC / 2}
-              x2={baseX - 20}
-              y2={baseY + fxmAC / 2}
-              stroke="#DC1E26"
-              strokeWidth="2"
-            />
-            <line
-              x1={baseX - 25}
-              y1={baseY - fxmAC / 2}
-              x2={baseX - 15}
-              y2={baseY - fxmAC / 2}
-              stroke="#DC1E26"
-              strokeWidth="2"
-            />
-            <line
-              x1={baseX - 25}
-              y1={baseY + fxmAC / 2}
-              x2={baseX - 15}
-              y2={baseY + fxmAC / 2}
-              stroke="#DC1E26"
-              strokeWidth="2"
-            />
-            <text
-              x={baseX - 35}
-              y={baseY}
-              textAnchor="middle"
-              fill="#DC1E26"
-              fontSize="12"
-              fontWeight="bold"
-              transform={`rotate(-90, ${baseX - 35}, ${baseY})`}
-            >
-              AC = {fxm.dimensions.ac} mm
-            </text>
-            
-            {/* Diámetro D */}
-            <line
-              x1={baseX + fxmL + fxmD * 2 + 10}
-              y1={baseY - fxmD / 2}
-              x2={baseX + fxmL + fxmD * 2 + 10}
-              y2={baseY + fxmD / 2}
-              stroke="#DC1E26"
-              strokeWidth="2"
-            />
-            <text
-              x={baseX + fxmL + fxmD * 2 + 25}
-              y={baseY + 5}
-              fill="#DC1E26"
-              fontSize="12"
-              fontWeight="bold"
-            >
-              D = {fxm.dimensions.d} mm
-            </text>
-          </svg>
+          
+          {/* VISTA LATERAL */}
+          <div className="mb-4">
+            <h5 className="text-xs font-bold text-slate-500 text-center mb-1">SIDE VIEW</h5>
+            <svg viewBox="0 0 400 250" className="w-full border border-slate-200 bg-slate-50 rounded">
+              {/* Motor body */}
+              <rect
+                x={baseX}
+                y={125 - fxmAC / 2}
+                width={fxmL}
+                height={fxmAC}
+                fill="#E0F2FE"
+                stroke="#2563EB"
+                strokeWidth="2"
+              />
+              {/* Shaft */}
+              <rect
+                x={baseX + fxmL}
+                y={125 - fxmD / 2}
+                width={fxmD * 2}
+                height={fxmD}
+                fill="#94A3B8"
+                stroke="#475569"
+                strokeWidth="2"
+              />
+              {/* Dimension L */}
+              <line x1={baseX} y1={125 + fxmAC/2 + 15} x2={baseX + fxmL} y2={125 + fxmAC/2 + 15} stroke="#DC1E26" strokeWidth="2" />
+              <text x={baseX + fxmL/2} y={125 + fxmAC/2 + 30} textAnchor="middle" fill="#DC1E26" fontSize="12" fontWeight="bold">L={fxm.dimensions.l}</text>
+              
+              {/* Dimension AC */}
+              <line x1={baseX - 15} y1={125 - fxmAC/2} x2={baseX - 15} y2={125 + fxmAC/2} stroke="#DC1E26" strokeWidth="2" />
+              <text x={baseX - 25} y={125} textAnchor="middle" fill="#DC1E26" fontSize="12" fontWeight="bold" transform={`rotate(-90, ${baseX - 25}, 125)`}>AC={fxm.dimensions.ac}</text>
+            </svg>
+          </div>
+
+          {/* VISTA FRONTAL (BRIDA) */}
+          <div>
+            <h5 className="text-xs font-bold text-slate-500 text-center mb-1">FLANGE VIEW (FRONT)</h5>
+            <svg viewBox="0 0 200 200" className="w-full h-48 border border-slate-200 bg-slate-50 rounded mx-auto">
+              {/* Center Point */}
+              <circle cx="100" cy="100" r="2" fill="#94A3B8" />
+              
+              {/* Bolt Circle (M) */}
+              <circle cx="100" cy="100" r={(fxm.dimensions.m || 100) / 2} fill="none" stroke="#94A3B8" strokeDasharray="4 4" />
+              
+              {/* Flange Square (E) */}
+              <rect 
+                x={100 - (fxm.dimensions.e || 100)/2} 
+                y={100 - (fxm.dimensions.e || 100)/2} 
+                width={fxm.dimensions.e || 100} 
+                height={fxm.dimensions.e || 100} 
+                fill="none" 
+                stroke="#2563EB" 
+                strokeWidth="2" 
+              />
+              
+              {/* Pilot (N) */}
+              <circle cx="100" cy="100" r={(fxm.dimensions.n || 80) / 2} fill="#E0F2FE" stroke="#2563EB" strokeWidth="1" />
+              
+              {/* Bolt Holes (4x) */}
+              <circle cx={100 - (fxm.dimensions.m || 100)/2 * 0.707} cy={100 - (fxm.dimensions.m || 100)/2 * 0.707} r="4" fill="white" stroke="#2563EB" />
+              <circle cx={100 + (fxm.dimensions.m || 100)/2 * 0.707} cy={100 - (fxm.dimensions.m || 100)/2 * 0.707} r="4" fill="white" stroke="#2563EB" />
+              <circle cx={100 - (fxm.dimensions.m || 100)/2 * 0.707} cy={100 + (fxm.dimensions.m || 100)/2 * 0.707} r="4" fill="white" stroke="#2563EB" />
+              <circle cx={100 + (fxm.dimensions.m || 100)/2 * 0.707} cy={100 + (fxm.dimensions.m || 100)/2 * 0.707} r="4" fill="white" stroke="#2563EB" />
+
+              {/* Labels */}
+              <text x="100" y="190" textAnchor="middle" fontSize="10" fill="#64748B">E = {fxm.dimensions.e}mm</text>
+              <text x="100" y="104" textAnchor="middle" fontSize="10" fill="#2563EB">N={fxm.dimensions.n}</text>
+            </svg>
+          </div>
         </div>
-        
+
         {/* Diagrama FKM */}
         <div>
           <h4 className="text-center font-bold text-primary mb-2">FKM {fkm.model}</h4>
-          <svg viewBox="0 0 400 300" className="w-full border border-slate-200 bg-slate-50">
-            {/* Motor body */}
-            <rect
-              x={baseX}
-              y={baseY - fkmAC / 2}
-              width={fkmL}
-              height={fkmAC}
-              fill="#DC1E26"
-              stroke="#B91C1C"
-              strokeWidth="2"
-            />
-            
-            {/* Shaft */}
-            <rect
-              x={baseX + fkmL}
-              y={baseY - fkmD / 2}
-              width={fkmD * 2}
-              height={fkmD}
-              fill="#94A3B8"
-              stroke="#475569"
-              strokeWidth="2"
-            />
-            
-            {/* Dimensiones */}
-            {/* Longitud L */}
-            <line
-              x1={baseX}
-              y1={baseY + fkmAC / 2 + 20}
-              x2={baseX + fkmL}
-              y2={baseY + fkmAC / 2 + 20}
-              stroke="#DC1E26"
-              strokeWidth="2"
-            />
-            <line
-              x1={baseX}
-              y1={baseY + fkmAC / 2 + 15}
-              x2={baseX}
-              y2={baseY + fkmAC / 2 + 25}
-              stroke="#DC1E26"
-              strokeWidth="2"
-            />
-            <line
-              x1={baseX + fkmL}
-              y1={baseY + fkmAC / 2 + 15}
-              x2={baseX + fkmL}
-              y2={baseY + fkmAC / 2 + 25}
-              stroke="#DC1E26"
-              strokeWidth="2"
-            />
-            <text
-              x={baseX + fkmL / 2}
-              y={baseY + fkmAC / 2 + 40}
-              textAnchor="middle"
-              fill="#DC1E26"
-              fontSize="12"
-              fontWeight="bold"
-            >
-              L = {fkm.dimensions.l} mm
-            </text>
-            
-            {/* Altura AC */}
-            <line
-              x1={baseX - 20}
-              y1={baseY - fkmAC / 2}
-              x2={baseX - 20}
-              y2={baseY + fkmAC / 2}
-              stroke="#DC1E26"
-              strokeWidth="2"
-            />
-            <line
-              x1={baseX - 25}
-              y1={baseY - fkmAC / 2}
-              x2={baseX - 15}
-              y2={baseY - fkmAC / 2}
-              stroke="#DC1E26"
-              strokeWidth="2"
-            />
-            <line
-              x1={baseX - 25}
-              y1={baseY + fkmAC / 2}
-              x2={baseX - 15}
-              y2={baseY + fkmAC / 2}
-              stroke="#DC1E26"
-              strokeWidth="2"
-            />
-            <text
-              x={baseX - 35}
-              y={baseY}
-              textAnchor="middle"
-              fill="#DC1E26"
-              fontSize="12"
-              fontWeight="bold"
-              transform={`rotate(-90, ${baseX - 35}, ${baseY})`}
-            >
-              AC = {fkm.dimensions.ac} mm
-            </text>
-            
-            {/* Diámetro D */}
-            <line
-              x1={baseX + fkmL + fkmD * 2 + 10}
-              y1={baseY - fkmD / 2}
-              x2={baseX + fkmL + fkmD * 2 + 10}
-              y2={baseY + fkmD / 2}
-              stroke="#DC1E26"
-              strokeWidth="2"
-            />
-            <text
-              x={baseX + fkmL + fkmD * 2 + 25}
-              y={baseY + 5}
-              fill="#DC1E26"
-              fontSize="12"
-              fontWeight="bold"
-            >
-              D = {fkm.dimensions.d} mm
-            </text>
-          </svg>
+          
+          {/* VISTA LATERAL */}
+          <div className="mb-4">
+            <h5 className="text-xs font-bold text-slate-500 text-center mb-1">SIDE VIEW</h5>
+            <svg viewBox="0 0 400 250" className="w-full border border-slate-200 bg-slate-50 rounded">
+              {/* Motor body */}
+              <rect
+                x={baseX}
+                y={125 - fkmAC / 2}
+                width={fkmL}
+                height={fkmAC}
+                fill="#FEF2F2"
+                stroke="#DC1E26"
+                strokeWidth="2"
+              />
+              {/* Shaft */}
+              <rect
+                x={baseX + fkmL}
+                y={125 - fkmD / 2}
+                width={fkmD * 2}
+                height={fkmD}
+                fill="#94A3B8"
+                stroke="#475569"
+                strokeWidth="2"
+              />
+              {/* Dimension L */}
+              <line x1={baseX} y1={125 + fkmAC/2 + 15} x2={baseX + fkmL} y2={125 + fkmAC/2 + 15} stroke="#DC1E26" strokeWidth="2" />
+              <text x={baseX + fkmL/2} y={125 + fkmAC/2 + 30} textAnchor="middle" fill="#DC1E26" fontSize="12" fontWeight="bold">L={fkm.dimensions.l}</text>
+              
+              {/* Dimension AC */}
+              <line x1={baseX - 15} y1={125 - fkmAC/2} x2={baseX - 15} y2={125 + fkmAC/2} stroke="#DC1E26" strokeWidth="2" />
+              <text x={baseX - 25} y={125} textAnchor="middle" fill="#DC1E26" fontSize="12" fontWeight="bold" transform={`rotate(-90, ${baseX - 25}, 125)`}>AC={fkm.dimensions.ac}</text>
+            </svg>
+          </div>
+
+          {/* VISTA FRONTAL (BRIDA) */}
+          <div>
+            <h5 className="text-xs font-bold text-slate-500 text-center mb-1">FLANGE VIEW (FRONT)</h5>
+            <svg viewBox="0 0 200 200" className="w-full h-48 border border-slate-200 bg-slate-50 rounded mx-auto">
+              {/* Center Point */}
+              <circle cx="100" cy="100" r="2" fill="#94A3B8" />
+              
+              {/* Bolt Circle (M) */}
+              <circle cx="100" cy="100" r={(fkm.dimensions.m || 100) / 2} fill="none" stroke="#94A3B8" strokeDasharray="4 4" />
+              
+              {/* Flange Square (E) */}
+              <rect 
+                x={100 - (fkm.dimensions.e || 100)/2} 
+                y={100 - (fkm.dimensions.e || 100)/2} 
+                width={fkm.dimensions.e || 100} 
+                height={fkm.dimensions.e || 100} 
+                fill="none" 
+                stroke="#DC1E26" 
+                strokeWidth="2" 
+              />
+              
+              {/* Pilot (N) */}
+              <circle cx="100" cy="100" r={(fkm.dimensions.n || 80) / 2} fill="#FEF2F2" stroke="#DC1E26" strokeWidth="1" />
+              
+              {/* Bolt Holes (4x) */}
+              <circle cx={100 - (fkm.dimensions.m || 100)/2 * 0.707} cy={100 - (fkm.dimensions.m || 100)/2 * 0.707} r="4" fill="white" stroke="#DC1E26" />
+              <circle cx={100 + (fkm.dimensions.m || 100)/2 * 0.707} cy={100 - (fkm.dimensions.m || 100)/2 * 0.707} r="4" fill="white" stroke="#DC1E26" />
+              <circle cx={100 - (fkm.dimensions.m || 100)/2 * 0.707} cy={100 + (fkm.dimensions.m || 100)/2 * 0.707} r="4" fill="white" stroke="#DC1E26" />
+              <circle cx={100 + (fkm.dimensions.m || 100)/2 * 0.707} cy={100 + (fkm.dimensions.m || 100)/2 * 0.707} r="4" fill="white" stroke="#DC1E26" />
+
+              {/* Labels */}
+              <text x="100" y="190" textAnchor="middle" fontSize="10" fill="#64748B">E = {fkm.dimensions.e}mm</text>
+              <text x="100" y="104" textAnchor="middle" fontSize="10" fill="#DC1E26">N={fkm.dimensions.n}</text>
+            </svg>
+          </div>
         </div>
       </div>
       

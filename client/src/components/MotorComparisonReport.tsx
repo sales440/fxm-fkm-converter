@@ -8,6 +8,7 @@ import { exportToPDF } from "@/lib/pdfExporter";
 import { exportToExcel } from "@/lib/excelExporter";
 import { useState } from "react";
 import MotorDimensionDiagram from "@/components/MotorDimensionDiagram";
+import ConnectorVisualizer from "@/components/ConnectorVisualizer";
 import { getEncoderRecommendation, getConnectorRecommendation } from "@/lib/encoderConnectorRecommendations";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 import CableLengthCalculator from "@/components/CableLengthCalculator";
@@ -343,7 +344,9 @@ export default function MotorComparisonReport({ comparison, conversionDirection 
         {/* Mechanical Dimensions */}
         <div>
           <h3 className="text-lg font-bold mb-4 text-primary bg-primary/10 px-4 py-2 rounded">{t('specs.dimensions')}</h3>
-          <div className="overflow-x-auto">
+          <MotorDimensionDiagram fxm={comparison.fxm} fkm={comparison.fkm} />
+          <ConnectorVisualizer fxmModel={comparison.fxm.model} fkmModel={comparison.fkm.model} />
+          <div className="overflow-x-auto mt-6">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b-2 border-primary bg-primary/5">
