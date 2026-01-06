@@ -1701,6 +1701,24 @@ export const motorDatabase: MotorDatabase = {
         },
         "pcal": 0.45
     },
+    "FKM 21.60A.xx.x00": {
+        "model": "FKM 21.60A.xx.x00",
+        "mo": 1.7,
+        "mn": 1.5,
+        "mp": 7.1,
+        "rpm": 6000,
+        "j": 1.1,
+        "io": 2.1,
+        "dimensions": {
+            "ac": 0,
+            "n": 0,
+            "d": 0,
+            "e": 0,
+            "m": 0,
+            "l": 25
+        },
+        "pcal": 1.1
+    },
     "FKM 42.45A.xx.x00": {
         "model": "FKM 42.45A.xx.x00",
         "mo": 6.3,
@@ -1737,24 +1755,7 @@ export const motorDatabase: MotorDatabase = {
         },
         "pcal": 1.7
     },
-    "FKM 21.60A.xx.x00": {
-        "model": "FKM 21.60A.xx.x00",
-        "mo": 1.7,
-        "mn": 0.8,
-        "mp": 6.8,
-        "rpm": 6000,
-        "j": 1.6,
-        "io": 2.8,
-        "dimensions": {
-            "ac": 0,
-            "n": 0,
-            "d": 0,
-            "e": 0,
-            "m": 0,
-            "l": 25
-        },
-        "pcal": 1.1
-    },
+
     "FKM 22.60A.xx.x00": {
         "model": "FKM 22.60A.xx.x00",
         "mo": 3.2,
