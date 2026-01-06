@@ -223,15 +223,30 @@ export function findEquivalentFKM(fxmMotor: Motor, database: MotorDatabase): Mot
   const equivalents: Motor[] = [];
   const targetRpm = fxmMotor.rpm;
   const targetMo = fxmMotor.mo;
-  const moTolerance = 0.30; // 30% tolerancia (aumentado para FXM 32.40A)
   
+  // Tolerancia base del 30%
+  let moTolerance = 0.30; 
+  
+  // EXCEPCIÓN CRÍTICA PARA MOTORES PEQUEÑOS (< 2.0 Nm)
+  // Para motores muy pequeños (como FXM 11.30A de 1.2 Nm), la diferencia porcentual con el equivalente más cercano
+  // (FKM 21.60A de 1.7 Nm) es alta (~41%), pero es la única opción válida.
+  if (targetMo !== null && targetMo < 2.0) {
+    moTolerance = 0.60; // Permitir hasta 60% de diferencia para motores micro
+  }
+
   for (const fkmMotor of Object.values(database.fkm_motors)) {
-    // Criterio 1: RPM debe ser igual
-    if (fkmMotor.rpm !== targetRpm) continue;
+    // Criterio 1: RPM (Lógica mejorada)
+    // Generalmente deben ser iguales, pero permitimos que el FKM sea más rápido si es un motor pequeño
+    // Caso específico: FXM 11.30A (3000 rpm) -> FKM 21.60A (6000 rpm)
+    const rpmCompatible = fkmMotor.rpm === targetRpm || 
+                          (targetMo !== null && targetMo < 2.0 && fkmMotor.rpm !== null && targetRpm !== null && fkmMotor.rpm >= targetRpm);
+
+    if (!rpmCompatible) continue;
     
-    // Criterio 2: Mo debe estar dentro del rango (±25%)
+    // Criterio 2: Mo debe estar dentro del rango tolerado
     if (fkmMotor.mo === null || targetMo === null) continue;
     const moDiff = Math.abs(fkmMotor.mo - targetMo) / targetMo;
+    
     if (moDiff > moTolerance) continue;
     
     equivalents.push(fkmMotor);
